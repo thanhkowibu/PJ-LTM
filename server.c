@@ -43,22 +43,19 @@ char* read_file(const char* filename) {
 void handle_request(int client_sock, struct sockaddr_in client_addr) {
     char buffer[BUFF_SIZE];
     int received_bytes;
+    time_t start_time = time(NULL);
 
-    while (1) {
         received_bytes = recv(client_sock, buffer, BUFF_SIZE - 1, 0); // Leave space for null terminator
 
         if (received_bytes < 0) {
             perror("Error receiving data");
-            break;
         } else if (received_bytes == 0) {
             // Client closed the connection
             printf("Client disconnected.\n");
-            break;
         }
 
         // Add a null terminator to avoid undefined behavior
         buffer[received_bytes] = '\0';
-        time_t start_time = time(NULL);
 
         // Handle the request as a string
         if (strncmp(buffer, "GET / ", 6) == 0) {
@@ -67,7 +64,10 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
 
             if (html_content != NULL) {
                 char response[BUFF_SIZE];
-                snprintf(response, sizeof(response), "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n%s", html_content);
+                snprintf(response, sizeof(response), "HTTP/1.1 200 OK\r\n"
+                                      "Content-Type: text/html\r\n"
+                                      "Connection: keep-alive\r\n\r\n%s", html_content);
+
                 send(client_sock, response, strlen(response), 0);  // Send the HTML content
                 free(html_content);  // Free the allocated memory for the file content
             } else {
@@ -103,7 +103,6 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
             // Handle favicon request
             char response[] = "HTTP/1.1 204 No Content\r\n\r\n";
             send(client_sock, response, sizeof(response) - 1, 0);
-            continue;
         } else if (strncmp(buffer, "POST /send ", 11) == 0) {
             
             // Extract message from body
@@ -118,7 +117,6 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
                     printf("Invalid JSON format.\n");
                     char error_response[] = "HTTP/1.1 400 Bad Request\r\n\r\nInvalid JSON format.";
                     send(client_sock, error_response, sizeof(error_response) - 1, 0);
-                    continue;
                 }
 
                 // Check for message or choice
@@ -153,11 +151,11 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
                 char error_response[] = "HTTP/1.1 400 Bad Request\r\n\r\nInvalid POST request format.";
                 send(client_sock, error_response, sizeof(error_response) - 1, 0);
             }
-        }
+        
 
         // Log response time
         time_t end_time = time(NULL);
-        // printf("Response sent. Time taken to handle request: %ld seconds\n", end_time - start_time);
+        printf("Response sent. Time taken to handle request: %ld seconds\n", end_time - start_time);
     }
 
     close(client_sock);
