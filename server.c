@@ -6,6 +6,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <json-c/json.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #define PORT 8080
 #define BUFF_SIZE 4096
@@ -178,23 +180,67 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
     close(client_sock);
 }
 
+void sig_chld(int signo) {
+    pid_t pid;
+    int stat;
+    pid = waitpid(-1, &stat, WNOHANG);
+    printf("Child %d terminated\n", pid);
+}
+
 int main() {
     int server_sock, client_sock;
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_size = sizeof(struct sockaddr_in);
+    pid_t pid;
 
-    server_sock = socket(AF_INET, SOCK_STREAM, 0);
+    // Step 1: Construct a TCP socket
+    if ((server_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("\nError: ");
+        exit(0);
+    }
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
     server_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(server_addr.sin_zero), 8);
 
-    bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    listen(server_sock, 5);
+    // Step 2: Bind address to socket
+    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("\nError: ");
+        exit(0);
+    }
 
+    // Step 3: Listen for incoming connections
+    if (listen(server_sock, 5) == -1) {
+        perror("\nError: ");
+        exit(0);
+    }
     printf("Server listening on port %d\n", PORT);
+
+    // Wait for a child process to stop
+    signal(SIGCHLD, sig_chld);
+
+    // Step 4: Accept connection from a client
     while (1) {
-        client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &addr_size);
-        handle_request(client_sock, client_addr);
+        if ((client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &addr_size)) == -1) {
+            perror("\nError accepting client: ");
+            continue;
+        }
+
+        // Step 5: Handle each client in child process
+        if ((pid = fork()) == 0) {
+            close(server_sock);
+            handle_request(client_sock, client_addr);
+
+            // Close client socket
+            close(client_sock);
+            printf("Client %s:%d disconnected\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+            exit(0);
+        } else if (pid < 0) {
+            perror("Fork failed");
+            exit(EXIT_FAILURE);
+        }
+
+        close(client_sock);
     }
 
     close(server_sock);
