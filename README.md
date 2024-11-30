@@ -1,9 +1,13 @@
 Run server:
 
-make clean
+```bash
+cd /server
 make
 ./server
-
+```
 Run client:
 
-python3 -m http.server 8080
+```bash
+cd /client
+npm run dev
+```
