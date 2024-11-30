@@ -4,7 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define ACCOUNT "nguoidung.txt"
+#define ACCOUNT "data/nguoidung.txt"
 
 typedef struct User {
     char username[50];
