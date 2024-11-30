@@ -1,60 +1,35 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+#include "http_handler.h"
+#include "sse.h"
 #include <json-c/json.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
-#define PORT 8080
-#define BUFF_SIZE 4096
-#define MAX_CLIENTS 20
+void *handle_request(void *args) {
+    pthread_detach(pthread_self());
+    ThreadArgs* tArgs = (ThreadArgs*)args;
+    int client_sock = tArgs->connfd;
+    struct sockaddr_in client_addr = tArgs->cliaddr;
+    free(tArgs);
 
-int sse_clients[MAX_CLIENTS]; // Store connected SSE client sockets
-int sse_client_count = 0;
-
-void add_sse_client(int client_sock) {
-    if (sse_client_count < MAX_CLIENTS) {
-        sse_clients[sse_client_count++] = client_sock;
-    } else {
-        close(client_sock); // Close if we can't handle more clients
-    }
-}
-
-void remove_sse_client(int client_sock) {
-    for (int i = 0; i < sse_client_count; i++) {
-        if (sse_clients[i] == client_sock) {
-            // Shift remaining clients down the list
-            for (int j = i; j < sse_client_count - 1; j++) {
-                sse_clients[j] = sse_clients[j + 1];
-            }
-            sse_client_count--;
-            break;
-        }
-    }
-}
-
-void broadcast_message(const char *message) {
-    char response[BUFF_SIZE];
-    snprintf(response, sizeof(response), "data: %s\n\n", message);
-
-    for (int i = 0; i < sse_client_count; i++) {
-        send(sse_clients[i], response, strlen(response), 0);
-    }
-}
-
-void handle_request(int client_sock, struct sockaddr_in client_addr) {
     char buffer[BUFF_SIZE];
     int received_bytes = recv(client_sock, buffer, BUFF_SIZE - 1, 0);
 
     if (received_bytes < 0) {
         perror("Error receiving data");
         close(client_sock);
-        return;
+        return NULL;
+    } else if (received_bytes == 0) {
+        printf("Client disconnected.\n");
+        close(client_sock);
+        return NULL;
     }
 
-    buffer[received_bytes] = '\0'; // Null terminate the received data
+    buffer[received_bytes] = '\0';
 
     // Check if this is a preflight (OPTIONS) request for CORS
     if (strncmp(buffer, "OPTIONS", 7) == 0) {
@@ -92,9 +67,18 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
             "Access-Control-Allow-Origin: *\r\n\r\n"; // Make sure CORS header is here
         send(client_sock, response, sizeof(response) - 1, 0);
         add_sse_client(client_sock);
-        return; // Keep the connection open for SSE
-    }
-     else if (strncmp(buffer, "POST /api/message", 17) == 0) {
+
+        // Create a new thread to handle the SSE client
+        SseArgs* args = (SseArgs*)malloc(sizeof(SseArgs));
+        args->connfd = client_sock;
+        args->cliaddr = client_addr;
+
+        pthread_t tid;
+        if (pthread_create(&tid, NULL, handle_sse_client, (void *)args) != 0) {
+            perror("Error creating thread");
+        }
+        return NULL; // Return to avoid closing the client socket
+    } else if (strncmp(buffer, "POST /api/message", 17) == 0) {
         // Locate the JSON body in the HTTP request
         char *json_start = strstr(buffer, "\r\n\r\n");
         if (json_start) {
@@ -176,27 +160,5 @@ void handle_request(int client_sock, struct sockaddr_in client_addr) {
     }
 
     close(client_sock);
-}
-
-int main() {
-    int server_sock, client_sock;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t addr_size = sizeof(struct sockaddr_in);
-
-    server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-
-    bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    listen(server_sock, 5);
-
-    printf("Server listening on port %d\n", PORT);
-    while (1) {
-        client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &addr_size);
-        handle_request(client_sock, client_addr);
-    }
-
-    close(server_sock);
-    return 0;
+    return NULL;
 }
