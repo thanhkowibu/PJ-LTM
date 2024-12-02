@@ -6,16 +6,12 @@
 
 #define ACCOUNT "data/nguoidung.txt"
 
-typedef struct User {
-    char username[50];
-    char password[50];
-    int status;
-    char homepage[50];
-    struct User *next;
-} User;
-
 User *head = NULL;
+
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+__thread User *curUser = NULL; 
 
 void loadUserFromFile() {
     pthread_mutex_lock(&mutex);
@@ -54,4 +50,86 @@ void saveUserToFile() {
     fclose(output);
 
     pthread_mutex_unlock(&mutex);
+}
+
+
+User * getCurUser() {
+    return curUser;
+}
+
+int setCurUser(User *user) {
+    curUser = user;
+    return 1;
+}
+
+int requiredLogin() {
+    return (curUser != NULL);
+}
+
+// Get info of cur User (will update when user have more info)
+int getCurrentUserInfo(char *username) {
+    if (curUser == NULL) {
+        return 0; // No current user
+    }
+    strcpy(username, curUser->username);
+    return 1; // Successfully retrieved current user info
+}
+
+// Set info of cur User (will update when user have more info)
+int setCurrentUserInfo (char *username) {
+    if(curUser == NULL){
+        return 0;
+    }
+    strcpy(curUser->username, username);
+    return 1;
+}
+
+int authenticate_user(const char *username, const char *password) {
+    pthread_mutex_lock(&mutex);
+    User *current = head;
+    while (current != NULL) {
+        if (strcmp(current->username, username) == 0 && strcmp(current->password, password) == 0) {
+            pthread_mutex_unlock(&mutex);
+            curUser = current;
+            return 1; // Authentication successful
+        }
+        current = current->next;
+    }
+    pthread_mutex_unlock(&mutex);
+    return 0; // Authentication failed
+}
+
+int register_user(const char *username, const char *password) {
+    pthread_mutex_lock(&mutex);
+    User *current = head;
+    while (current != NULL) {
+        if (strcmp(current->username, username) == 0) {
+            pthread_mutex_unlock(&mutex);
+            return 0; // User already exists
+        }
+        current = current->next;
+    }
+
+    User *new_user = malloc(sizeof(User));
+    if (new_user == NULL) {
+        pthread_mutex_unlock(&mutex);
+        return 0; // Memory allocation failed
+    }
+    strcpy(new_user->username, username);
+    strcpy(new_user->password, password);
+    new_user->status = 1; // Default status
+    strcpy(new_user->homepage, ""); // Default homepage
+    new_user->next = head;
+    head = new_user;
+
+    pthread_mutex_unlock(&mutex);
+    return 1; // Registration successful
+}
+
+int log_out() {
+    if(curUser == NULL){
+        return 0;
+    }
+    curUser = NULL;
+    return 1;
 }

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pthread -ljson-c
+CFLAGS = -Wall -pthread -ljson-c -Ifeatures -Ihandler
 
 all: server
 
