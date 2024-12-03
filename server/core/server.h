@@ -7,7 +7,7 @@ typedef struct ThreadArgs {
     struct sockaddr_in cliaddr;
 } ThreadArgs;
 
-void *handle_request(void *arg);
+void handle_request(int client_sock);
 void send_error_response(int client_sock, int status_code, const char *message);
 int match_route(const char *route, const char *path, char *param);
 void parse_request(const char *request, char *method, char *path);

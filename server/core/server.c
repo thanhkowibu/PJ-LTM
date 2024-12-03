@@ -2,7 +2,11 @@
 
 #include "../features/user.h"
 #include "../features/room.h"
+
+// routes
 #include "../routes/auth_routes.h"
+#include "../routes/api_routes.h"
+#include "../handler/http_handler.h"
 
 #include <json-c/json.h>
 #include <stdio.h>
@@ -27,34 +31,29 @@ Route routes[] = {
     {"POST", "/auth/register", handle_register, 0},
     {"GET", "/auth/logout", handle_logout, 0},
     {"GET", "/test", test, 0},
-    // {"POST", "/api/create-room", handle_create_room, 0},
+
+    {"GET", "/api/subscribe", subcribe, 1},
+    {"POST", "/api/choice", choice, 1},
+    {"OPTIONS", "/api/message", send_message, 1},
+    {"GET", "/api/data", get_data, 1},
     // {"GET", "/api/join-room", handle_join_room, 0},
     // {"GET", "/events", handle_sse_events, 1}, // SSE route
 };
 
 
 // middleware
-void * handle_request(void *args) {
-    pthread_detach(pthread_self());
-    ThreadArgs* tArgs = (ThreadArgs*)args;
-    int client_sock = tArgs->connfd;
-    // struct sockaddr_in client_addr = tArgs->cliaddr;
-    free(tArgs);
-
+void handle_request(int client_sock) {
     char buffer[BUFF_SIZE];
     char request[BUFF_SIZE];
     char json[BUFF_SIZE];
 
     int received_bytes = recv(client_sock, buffer, BUFF_SIZE - 1, 0);
-    if (received_bytes < 0) {
+
+    if (received_bytes <= 0) {
         perror("Error receiving data");
-        close(client_sock);
-        return NULL;
-    } else if (received_bytes == 0) {
-        printf("Client disconnected.\n");
-        close(client_sock);
-        return NULL;
-    }
+        remove_client(client_sock);
+        return;
+    } 
 
     buffer[received_bytes] = '\0';
 
@@ -71,8 +70,8 @@ void * handle_request(void *args) {
     }
 
     route_request(client_sock, request, json);
-    close(client_sock);
-    return NULL;
+    // close(client_sock);
+    return;
 }
 
 void parse_request(const char *request, char *method, char *path) {
@@ -81,17 +80,20 @@ void parse_request(const char *request, char *method, char *path) {
 
 
 void route_request(int client_sock, const char *request, const char *json) {
+    printf("%s-%s\n",request,json);
     char method[8], path[256];
     parse_request(request, method, path);
 
+    // handle_http_request(client_sock);
+
     // Iterate through the routing table
     for (int i = 0; i < sizeof(routes) / sizeof(Route); i++) {
-        printf("method: %s, path: %s\n", method, path);
+        // printf("method: %s, path: %s\n", method, path);
         if (strcmp(routes[i].method, method) == 0 && strcmp(routes[i].route, path) == 0) {
             if (routes[i].is_sse) {
                 // Call SSE handler
-                printf("Routing to SSE handler for: %s %s\n", method, path);
-                routes[i].handler(client_sock, NULL, NULL); // No body needed for SSE
+                // printf("Routing to SSE handler for: %s %s\n", method, path);
+                routes[i].handler(client_sock, request, json); // No body needed for SSE
             } else {
                 // Call RESTful handler
                 printf("Routing to RESTful handler for: %s %s\n", method, path);
