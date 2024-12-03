@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "user.h": "c",
+        "room.h": "c",
+        "stdio.h": "c",
+        "types.h": "c"
+    }
+}

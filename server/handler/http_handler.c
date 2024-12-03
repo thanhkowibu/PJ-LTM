@@ -12,7 +12,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-void *handle_request(void *args) {
+/*
+void *handle_request1(void *args) {
     pthread_detach(pthread_self());
     ThreadArgs* tArgs = (ThreadArgs*)args;
     int client_sock = tArgs->connfd;
@@ -384,3 +385,4 @@ void *handle_request(void *args) {
     close(client_sock);
     return NULL;
 }
+*/

@@ -1,13 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -pthread -ljson-c -Ifeatures -Ihandler
+CFLAGS = -Wall -pthread -ljson-c -Ifeatures -Ihandler -Iroutes
 
 all: server
 
-server: main.o handler/sse.o handler/http_handler.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o
-	$(CC) -o server main.o handler/sse.o handler/http_handler.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o $(CFLAGS)
+server: main.o handler/sse.o handler/http_handler.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o
+	$(CC) -o server main.o handler/sse.o handler/http_handler.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o $(CFLAGS)
 
 main.o: main.c
 	$(CC) -c main.c -o main.o $(CFLAGS)
+
+core/server.o: core/server.c core/server.h
+	$(CC) -c core/server.c -o core/server.o $(CFLAGS)
 
 handler/sse.o: handler/sse.c handler/sse.h
 	$(CC) -c handler/sse.c -o handler/sse.o $(CFLAGS)
@@ -30,5 +33,11 @@ features/leaderboard.o: features/leaderboard.c features/leaderboard.h
 utils/utils.o: utils/utils.c utils/utils.h
 	$(CC) -c utils/utils.c -o utils/utils.o $(CFLAGS)
 
+routes/auth_routes.o: routes/auth_routes.c routes/auth_routes.h
+	$(CC) -c routes/auth_routes.c -o routes/auth_routes.o $(CFLAGS)
+
+middleware/cookies.o: middleware/cookies.c middleware/cookies.h
+	$(CC) -c middleware/cookies.c -o middleware/cookies.o $(CFLAGS)
+
 clean:
-	rm -f main.o handler/*.o features/*.o utils/*.o server
+	rm -f main.o handler/*.o features/*.o utils/*.o routes/*.o server

@@ -1,4 +1,4 @@
-#include "handler/http_handler.h"
+// #include "handler/http_handler.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "core/server.h"
 
 #define PORT 8080
 
