@@ -1,18 +1,21 @@
 #ifndef SSE_H
 #define SSE_H
 
-#define MAX_CLIENTS 20
-#define BUFF_SIZE 4096
-#include <netinet/in.h>
+#include <sys/select.h>
+#include <stdbool.h>
 
-typedef struct SseArgs {
-    int connfd;
-    struct sockaddr_in cliaddr;
-} SseArgs;
+#define MAX_CLIENTS 100
+#define BUFF_SIZE 1024
 
-void add_sse_client(int client_sock);
-void remove_sse_client(int client_sock);
-void broadcast_message(const char *message);
-void *handle_sse_client(void *args);
+typedef struct {
+    int client_sock;
+    bool is_sse;
+} Client;
 
-#endif // SSE_H
+extern Client clients[MAX_CLIENTS];
+extern fd_set master_set;
+
+void broadcast_message(const char *message, int sender_sock);
+void remove_client(int client_sock);
+
+#endif

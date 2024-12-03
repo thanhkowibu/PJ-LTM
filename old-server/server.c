@@ -7,13 +7,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <json-c/json.h>
 
-#define PORT 8080
+#define PORT 8081
 #define MAX_CLIENTS 100
 #define BUFF_SIZE 1024
 
 typedef struct {
-    int sockfd;
+    int client_sock;
     bool is_sse;  // Flag to check if this client is subscribed to SSE
 } Client;
 
@@ -23,19 +24,19 @@ int max_fd;
 
 void init_clients() {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        clients[i].sockfd = -1;
+        clients[i].client_sock = -1;
         clients[i].is_sse = false;
     }
 }
 
-void remove_client(int sockfd) {
+void remove_client(int client_sock) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].sockfd == sockfd) {
-            close(clients[i].sockfd);
-            clients[i].sockfd = -1;
+        if (clients[i].client_sock == client_sock) {
+            close(clients[i].client_sock);
+            clients[i].client_sock = -1;
             clients[i].is_sse = false;
-            FD_CLR(sockfd, &master_set);
-            printf("Client disconnected: %d\n", sockfd);
+            FD_CLR(client_sock, &master_set);
+            printf("Client disconnected: %d\n", client_sock);
             break;
         }
     }
@@ -43,62 +44,154 @@ void remove_client(int sockfd) {
 
 void broadcast_message(const char *message, int sender_sock) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].sockfd != -1 && clients[i].is_sse && clients[i].sockfd != sender_sock) {
+        if (clients[i].client_sock != -1 && clients[i].is_sse && clients[i].client_sock != sender_sock) {
             char sse_message[BUFF_SIZE];
             snprintf(sse_message, sizeof(sse_message), "data: %s\n\n", message);
-            send(clients[i].sockfd, sse_message, strlen(sse_message), 0);
+            send(clients[i].client_sock, sse_message, strlen(sse_message), 0);
         }
     }
 }
 
-void handle_http_request(int sockfd) {
+void handle_http_request(int client_sock) {
     char buffer[BUFF_SIZE];
-    int bytes_received = recv(sockfd, buffer, BUFF_SIZE - 1, 0);
+    int bytes_received = recv(client_sock, buffer, BUFF_SIZE - 1, 0);
 
     if (bytes_received <= 0) {
-        remove_client(sockfd);
+        printf("Client disconnected: %d\n", client_sock);
+        remove_client(client_sock);
         return;
     }
 
     buffer[bytes_received] = '\0';
+    printf("Received request: %s\n", buffer);
 
+    if (strncmp(buffer, "OPTIONS", 7) == 0) {
+        char response[] =
+            "HTTP/1.1 204 No Content\r\n"
+            "Access-Control-Allow-Origin: *\r\n"
+            "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+            "Access-Control-Allow-Headers: Content-Type\r\n"
+            "Connection: keep-alive\r\n\r\n";
+        send(client_sock, response, sizeof(response) - 1, 0);
+    } else if (strstr(buffer, "GET /api/subscribe")) {
     // Check if the request is for SSE subscription
-    if (strstr(buffer, "GET /api/subscribe")) {
         const char *sse_headers =
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: text/event-stream\r\n"
             "Cache-Control: no-cache\r\n"
             "Connection: keep-alive\r\n"
             "Access-Control-Allow-Origin: *\r\n\r\n";
-        send(sockfd, sse_headers, strlen(sse_headers), 0);
+        send(client_sock, sse_headers, strlen(sse_headers), 0);
 
         // Mark the client as subscribed to SSE
         for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (clients[i].sockfd == sockfd) {
+            if (clients[i].client_sock == client_sock) {
                 clients[i].is_sse = true;
-                printf("Client %d subscribed to SSE\n", sockfd);
+                printf("Client %d subscribed to SSE\n", client_sock);
                 break;
             }
         }
     }
-    // Check if the request is for sending a message
-    else if (strstr(buffer, "POST /api/message")) {
-        // Extract the message body
-        char *message_start = strstr(buffer, "\r\n\r\n");
-        if (message_start) {
-            message_start += 4;  // Skip the "\r\n\r\n"
-            printf("Received message: %s\n", message_start);
-            broadcast_message(message_start, sockfd);
-        }
+    else if (strncmp(buffer, "GET /api/data", 13) == 0) {
+        // Handle GET /api/data
+        struct json_object *json_response = json_object_new_object();
+        json_object_object_add(json_response, "status", json_object_new_string("success"));
+        json_object_object_add(json_response, "message", json_object_new_string("Hello, this is a JSON response"));
 
-        const char *response =
+        const char *json_str = json_object_to_json_string(json_response);
+        char response[BUFF_SIZE];
+        snprintf(response, sizeof(response), 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: application/json\r\n"
             "Access-Control-Allow-Origin: *\r\n"
-            "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n"
-            "Access-Control-Allow-Headers: Content-Type\r\n\r\n"
-            "{\"status\": \"Message broadcasted\"}";
-        send(sockfd, response, strlen(response), 0);
+            "Content-Length: %zu\r\n"
+            "Connection: keep-alive\r\n\r\n%s",
+            strlen(json_str), json_str);
+
+        send(client_sock, response, strlen(response), 0);
+        json_object_put(json_response); // Free JSON object memory
+    }
+    else if (strncmp(buffer, "POST /api/choice", 16) == 0) {
+        // Similar logic for choice endpoint
+        char *json_start = strstr(buffer, "\r\n\r\n");
+        if (json_start) {
+            json_start += 4;
+        } else {
+            json_start = buffer;
+        }
+
+        printf("Received JSON payload: %s\n", json_start);
+
+        struct json_object *json_request = json_tokener_parse(json_start);
+        struct json_object *choice_obj;
+
+        const char *choice_str = "No choice received";
+        if (json_request && json_object_object_get_ex(json_request, "choice", &choice_obj)) {
+            choice_str = json_object_get_string(choice_obj);
+        }
+
+        struct json_object *json_response = json_object_new_object();
+        json_object_object_add(json_response, "status", json_object_new_string("Choice received"));
+        json_object_object_add(json_response, "choice", json_object_new_string(choice_str));
+
+        const char *json_str = json_object_to_json_string(json_response);
+        char response[BUFF_SIZE];
+        snprintf(response, sizeof(response),
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Access-Control-Allow-Origin: *\r\n"
+            "Content-Length: %zu\r\n"
+            "Connection: keep-alive\r\n\r\n%s",
+            strlen(json_str), json_str);
+
+        printf("Sending response: %s\n", response);
+        send(client_sock, response, strlen(response), 0);
+
+        json_object_put(json_request);
+        json_object_put(json_response);
+    }
+    // Check if the request is for sending a message
+    else if (strncmp(buffer, "POST /api/message", 17) == 0) {
+        // Locate the JSON body in the HTTP request
+        char *json_start = strstr(buffer, "\r\n\r\n");
+        if (json_start) {
+            json_start += 4; // Move past the \r\n\r\n to start of JSON data
+        } else {
+            json_start = buffer; // If no headers, assume the whole buffer is JSON
+        }
+
+        // Parse the JSON data
+        struct json_object *json_request = json_tokener_parse(json_start);
+        struct json_object *message_obj;
+
+        const char *message_str = "No message received";
+        if (json_request && json_object_object_get_ex(json_request, "message", &message_obj)) {
+            message_str = json_object_get_string(message_obj);
+        }
+
+        // Broadcast the message to all SSE clients
+        broadcast_message(message_str, client_sock);
+
+        // Prepare the response
+        struct json_object *json_response = json_object_new_object();
+        json_object_object_add(json_response, "status", json_object_new_string("Message received"));
+        json_object_object_add(json_response, "message", json_object_new_string(message_str));
+
+        const char *json_str = json_object_to_json_string(json_response);
+        char response[BUFF_SIZE];
+        snprintf(response, sizeof(response),
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Access-Control-Allow-Origin: *\r\n"
+            "Content-Length: %zu\r\n"
+            "Connection: keep-alive\r\n\r\n%s",
+            strlen(json_str), json_str);
+
+        send(client_sock, response, strlen(response), 0);
+        
+        // Free JSON objects
+        json_object_put(json_request);
+        json_object_put(json_response);
     }
     // Handle OPTIONS request for CORS preflight
     else if (strstr(buffer, "OPTIONS /api/message")) {
@@ -107,7 +200,7 @@ void handle_http_request(int sockfd) {
             "Access-Control-Allow-Origin: *\r\n"
             "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type\r\n\r\n";
-        send(sockfd, response, strlen(response), 0);
+        send(client_sock, response, strlen(response), 0);
     }
     // Default response for unsupported endpoints
     else {
@@ -116,7 +209,7 @@ void handle_http_request(int sockfd) {
             "Content-Type: text/plain\r\n"
             "Access-Control-Allow-Origin: *\r\n\r\n"
             "Endpoint not found.";
-        send(sockfd, response, strlen(response), 0);
+        send(client_sock, response, strlen(response), 0);
     }
 }
 
@@ -182,8 +275,8 @@ int main() {
 
             // Add client to the list
             for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].sockfd == -1) {
-                    clients[i].sockfd = client_sock;
+                if (clients[i].client_sock == -1) {
+                    clients[i].client_sock = client_sock;
                     FD_SET(client_sock, &master_set);
                     if (client_sock > max_fd) {
                         max_fd = client_sock;
@@ -195,8 +288,8 @@ int main() {
 
         // Handle data from existing clients
         for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (clients[i].sockfd != -1 && FD_ISSET(clients[i].sockfd, &read_fds)) {
-                handle_http_request(clients[i].sockfd);
+            if (clients[i].client_sock != -1 && FD_ISSET(clients[i].client_sock, &read_fds)) {
+                handle_http_request(clients[i].client_sock);
             }
         }
     }

@@ -1,12 +1,8 @@
 #ifndef HTTP_HANDLER_H
 #define HTTP_HANDLER_H
-#include <netinet/in.h>
 
-typedef struct ThreadArgs {
-    int connfd;
-    struct sockaddr_in cliaddr;
-} ThreadArgs;
+#include "sse.h"
 
-void *handle_request(void *arg);
+void handle_http_request(int client_sock);
 
-#endif // HTTP_HANDLER_H
+#endif
