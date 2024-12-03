@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const BASE_URL = "http://127.0.0.1:8080/api"
+
 export const Home = () => {
   // State variables
   const [chatMessages, setChatMessages] = useState<string[]>([]);
@@ -13,7 +15,7 @@ export const Home = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8080/api/data', {
+        const response = await axios.get(`${BASE_URL}/data`, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -27,7 +29,7 @@ export const Home = () => {
 
   // Start Server-Sent Events (SSE)
   const startSSE = () => {
-    const eventSource = new EventSource('http://127.0.0.1:8080/api/subscribe');
+    const eventSource = new EventSource(`${BASE_URL}/subscribe`);
   
     eventSource.onmessage = (event) => {
       console.log('New message from server:', event.data);
@@ -54,7 +56,7 @@ export const Home = () => {
   // Send a chat message
   const sendMessage = async (message: string) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8080/api/message', { message }, {
+      const response = await axios.post(`${BASE_URL}/message`, { message }, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -70,7 +72,7 @@ export const Home = () => {
   // Send a choice (high or low)
   const sendChoice = async (choice: string) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8080/api/choice', { choice }, {
+      const response = await axios.post(`${BASE_URL}/choice`, { choice }, {
         headers: {
           'Content-Type': 'application/json',
         },
