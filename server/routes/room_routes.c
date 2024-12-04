@@ -42,7 +42,7 @@ void join_room(int client_sock, const char *request, const char *body) {
 
     struct json_object *json_response = json_object_new_object();
 
-    if ((username != NULL) && room_name && check_user_in_room(room_name,username) && add_user_to_room(room_name, username)) {
+    if ((username != NULL) && room_name && !check_user_in_room(room_name,username) && add_user_to_room(room_name, username)) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
 
         // Get the list of users in the room

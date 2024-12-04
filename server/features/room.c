@@ -35,6 +35,7 @@ int create_room(const char *name, int capacity, const char * curUser) {
     new_room->name[sizeof(new_room->name) - 1] = '\0';
     new_room->capacity = capacity;
     User * cur = find_user(curUser);
+    // printf("%s\n",cur->username);
     new_room->host = cur;
     // Create a new user node for the host
     UserNode *new_user_node = malloc(sizeof(UserNode));
@@ -43,6 +44,7 @@ int create_room(const char *name, int capacity, const char * curUser) {
         return 0; // Memory allocation failed
     }
     new_user_node->user = cur;
+    new_room->users = new_user_node;
 
     pthread_mutex_unlock(&room_mutex);
     return 1; // Room created successfully
