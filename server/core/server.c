@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define BUFF_SIZE 4096
+// #define BUFF_SIZE 4096
 
 typedef struct {
     const char *method;               // HTTP method (e.g., GET, POST)
