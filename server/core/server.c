@@ -7,6 +7,7 @@
 #include "../routes/auth_routes.h"
 #include "../routes/api_routes.h"
 #include "../handler/http_handler.h"
+#include "../routes/room_routes.h"
 
 #include <json-c/json.h>
 #include <stdio.h>
@@ -32,16 +33,19 @@ Route routes[] = {
     {"GET", "/auth/logout", handle_logout, 0},
     {"GET", "/test", test, 0},
 
-    {"GET", "/api/subscribe", subcribe, 1},
+    {"GET", "/api/subscribe", subcribe, 1}, 
     {"POST", "/api/choice", choice, 1},
     {"POST", "/api/message", send_message, 1},
     {"GET", "/api/data", get_data, 1},
+    {"POST", "/room/join", join_room, 0}, 
+    {"POST", "/room/create", add_room, 0},
+    {"GET", "/room/get_info", get_room_info, 0},
+
     {"GET", "/api/game/1/init", initialize_game, 0},
     {"GET", "/api/game/1", get_game_data, 0},
     {"POST", "/api/game/1", handle_choice, 0},
     {"GET", "/api/game/1/result", get_game_result, 0},
 };
-
 
 // middleware
 void handle_request(int client_sock) {
