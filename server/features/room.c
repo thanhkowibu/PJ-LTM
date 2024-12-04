@@ -139,6 +139,28 @@ int delete_user_from_room(const char *room_name, const char * curUser) {
     return 0; // Room not found
 }
 
+int check_user_in_room(const char *room_name, const char * curUser) {
+    pthread_mutex_lock(&room_mutex);
+    User * user = find_user(curUser);
+
+    for (int i = 0; i < room_count; ++i) {
+        if (strcmp(rooms[i].name, room_name) == 0) {
+            UserNode *current = rooms[i].users;
+            while (current != NULL) {
+                if (current->user == user) {
+                    pthread_mutex_unlock(&room_mutex);
+                    return 1; // User found in the room
+                }
+                current = current->next;
+            }
+            pthread_mutex_unlock(&room_mutex);
+            return 0; // User not found in the room
+        }
+    }
+    pthread_mutex_unlock(&room_mutex);
+    return 0; // Room not found
+}
+
 Room* get_room_by_name(const char *name) {
     pthread_mutex_lock(&room_mutex);
     for (int i = 0; i < room_count; ++i) {

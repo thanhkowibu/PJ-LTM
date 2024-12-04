@@ -31,11 +31,11 @@ void sendResponse(int client_sock, const char *response) {
 void sendError(int client_sock, const char *message, int error_code) {
     char response[BUFF_SIZE];
     snprintf(response, sizeof(response),
-        "HTTP/1.1 %d Error\r\n"
+        "HTTP/1.1 %d %s\r\n"
         "Content-Type: text/plain\r\n"
         "Access-Control-Allow-Origin: *\r\n"
         "Content-Length: %zu\r\n"
-        "Connection: keep-alive\r\n\r\n%s",error_code,
+        "Connection: keep-alive\r\n\r\n%s",error_code,message,
         strlen(message), message);
 
     send(client_sock, response, strlen(response), 0);

@@ -23,6 +23,7 @@ int delete_room(const char *name);
 int add_user_to_room(const char *room_name, const char * curUser);
 int delete_user_from_room(const char *room_name, const char * curUser);
 int get_user_count_in_room(const char *room_name);
+int check_user_in_room(const char *room_name, const char * curUser);
 Room* get_room_by_name(const char *name);
 
 #endif // ROOM_H

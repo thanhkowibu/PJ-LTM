@@ -4,5 +4,6 @@
 // Common utility functions
 void join_room(int client_sock, const char *request, const char *body);
 void add_room(int client_sock, const char *request, const char *body);
+void get_room_info(int client_sock, const char *request, const char *body);
 
 #endif // ROOM_ROUTER_H

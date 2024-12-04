@@ -41,7 +41,8 @@ Route routes[] = {
 
 
     {"POST", "/room/join", join_room, 0}, 
-    {"POST", "/room/create", add_room, 0}, 
+    {"POST", "/room/create", add_room, 0},
+    {"GET", "/room/get_info", get_room_info, 0},
 };
 
 // middleware
