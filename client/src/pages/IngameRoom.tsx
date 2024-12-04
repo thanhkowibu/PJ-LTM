@@ -1,14 +1,28 @@
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react";
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
+
+const BASE_URL = "http://127.0.0.1:8080/api"
 
 export const IngameRoom = () => {
+  const navigate = useNavigate();
   const [isShown, setIsShown] = useState(false);
+  const [name1, setName1] = useState("");
+  const [name2, setName2] = useState("");
+  const [pic1, setPic1] = useState("");
+  const [pic2, setPic2] = useState("");
+  const [unit, setUnit] = useState("");
+  const [score, setScore] = useState(0);
+
+  // animation
   const [countdown, setCountdown] = useState(200); // 200 for 20 seconds with 0.1s interval
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [animatedNumber1, setAnimatedNumber1] = useState(0);
   const [animatedNumber2, setAnimatedNumber2] = useState(0);
-  const [endNumber1, setEndNumber1] = useState(1000000);
-  const [endNumber2, setEndNumber2] = useState(997000);
+  const [value1, setValue1] = useState(0);
+  const [value2, setValue2] = useState(0);
+  
 
   useEffect(() => {
     if (isShown) {
@@ -18,7 +32,7 @@ export const IngameRoom = () => {
       const animate1 = (currentTime: number) => {
         const elapsedTime = currentTime - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
-        const currentNumber = Math.floor(progress * endNumber1);
+        const currentNumber = Math.floor(progress * value1);
         setAnimatedNumber1(currentNumber);
 
         if (progress < 1) {
@@ -29,7 +43,7 @@ export const IngameRoom = () => {
       const animate2 = (currentTime: number) => {
         const elapsedTime = currentTime - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
-        const currentNumber = Math.floor(progress * endNumber2);
+        const currentNumber = Math.floor(progress * value2);
         setAnimatedNumber2(currentNumber);
 
         if (progress < 1) {
@@ -40,7 +54,7 @@ export const IngameRoom = () => {
       requestAnimationFrame(animate1);
       requestAnimationFrame(animate2);
     }
-  }, [isShown, endNumber1, endNumber2]);
+  }, [isShown, value1, value2]);
 
   useEffect(() => {
     if (countdown > 0 && isTimerRunning) {
@@ -53,11 +67,85 @@ export const IngameRoom = () => {
     }
   }, [countdown, isTimerRunning]);
 
+  // game logic
+  const fetchData = async () => {
+    const userId = localStorage.getItem('userId');
+    console.log("userId=",userId)
+    try {
+      const response = await axios.get(`${BASE_URL}/game/1`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-ID': userId,
+        },
+      });
+      console.log(response.data);
+      setName1(response.data.name1);
+      setName2(response.data.name2);
+      setPic1(response.data.pic1);
+      setPic2(response.data.pic2);
+      setUnit(response.data.unit);
+      setIsShown(false);
+      setIsTimerRunning(true);
+      setCountdown(200);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+    // Start Server-Sent Events (SSE)
+    const startSSE = () => {
+      const eventSource = new EventSource(`${BASE_URL}/subscribe`);
+    
+      eventSource.onmessage = (event) => {
+        console.log("SSE event data:", event.data);
+        if (event.data === "Next") {
+          console.log("Calling fetchData due to Next event");
+          setTimeout(() => {
+            fetchData();
+          }, 3500);
+        } else if (event.data === "Finish") {
+          console.log("Navigating to /result/1 due to Finish event");
+          setTimeout(() => {
+            navigate("/result/1");
+          }, 3500);
+        }
+      };
+    
+      eventSource.onerror = () => {
+        console.error('SSE connection error. Reconnecting...');
+        eventSource.close();
+    
+        // Retry connection after a delay
+        setTimeout(startSSE, 5000);
+      };
+    };
+
+  useEffect(() => {
+    fetchData();
+    startSSE();
+  }, []);
+
   const handleChoice = async (choice: number) => {
+    const userId = localStorage.getItem('userId');
     if (countdown > 0) {
       setIsShown(true);
       setIsTimerRunning(false);
       console.log(choice);
+      try {
+        const response = await axios.post(`${BASE_URL}/game/1`, {
+          choice
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'User-ID': userId,
+          }
+        });
+        console.log(response.data);
+        setScore((pv) => pv + response.data.score);
+        setValue1(response.data.value1);
+        setValue2(response.data.value2);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 
@@ -69,16 +157,16 @@ export const IngameRoom = () => {
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src="https://wallpaper.forfun.com/fetch/32/32149d4d96e53453c26d8b1fed07094f.jpeg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src="/apple.jpg" alt="" />
       </div>
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src="https://images4.alphacoders.com/130/1307264.jpg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src="/banana.jpg" alt="" />
       </div>
       <div className="fixed top-16 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="text-4xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
-          <span>Which of two has more subscribers ?</span>
+          <span>Which of two is higher in {unit} ?</span>
         </div>
       </div>
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
@@ -98,12 +186,12 @@ export const IngameRoom = () => {
           <div className="text-slate-900 text-3xl font-bold">{Math.floor(countdown / 10)}</div>
         </div>
         <div className="text-2xl bg-white/90 text-black rounded-xl py-1 font-bold flex items-center justify-center">
-          <span>Score: 2</span>
+          <span>Score: {score}</span>
         </div>
       </div>
       <div className="fixed top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-20 text-center">
         <div className="text-4xl font-bold text-white">
-          "Hoshimachi Suisei"
+          "{name1}"
         </div>
         <div className={cn("flex flex-col gap-4",
           {"hidden":!isShown}
@@ -112,13 +200,13 @@ export const IngameRoom = () => {
             {animatedNumber1.toLocaleString()}
           </div>
           <div className="text-xl font-bold text-white">
-            subscribers
+            {unit}
           </div>
         </div>
       </div>
       <div className="fixed top-1/2 left-3/4 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-20 text-center">
         <div className="text-4xl font-bold text-white">
-            "Sakura Miko"
+            "{name2}"
         </div>
         <div className={cn("flex flex-col gap-4",
           {"hidden":!isShown}
@@ -127,7 +215,7 @@ export const IngameRoom = () => {
             {animatedNumber2.toLocaleString()}
           </div>
           <div className="text-xl font-bold text-white">
-            subscribers
+            {unit}
           </div>
         </div>
       </div>
