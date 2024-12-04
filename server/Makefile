@@ -3,8 +3,8 @@ CFLAGS = -Wall -pthread -ljson-c -Ifeatures -Icore -Iroutes
 
 all: server
 
-server: main.o core/sse.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o routes/api_routes.o handler/http_handler.o
-	$(CC) -o server main.o core/sse.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o routes/api_routes.o handler/http_handler.o $(CFLAGS)
+server: main.o core/sse.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o routes/api_routes.o handler/http_handler.o routes/room_routes.o
+	$(CC) -o server main.o core/sse.o features/user.o features/room.o features/game.o features/leaderboard.o utils/utils.o core/server.o routes/auth_routes.o middleware/cookies.o routes/api_routes.o handler/http_handler.o routes/room_routes.o $(CFLAGS)
 
 main.o: main.c
 	$(CC) -c main.c -o main.o $(CFLAGS)
@@ -35,6 +35,9 @@ routes/auth_routes.o: routes/auth_routes.c routes/auth_routes.h
 
 routes/api_routes.o: routes/api_routes.c routes/api_routes.h
 	$(CC) -c routes/api_routes.c -o routes/api_routes.o $(CFLAGS)
+
+routes/room_routes.o: routes/room_routes.c routes/room_routes.h
+	$(CC) -c routes/room_routes.c -o routes/room_routes.o $(CFLAGS)
 
 middleware/cookies.o: middleware/cookies.c middleware/cookies.h
 	$(CC) -c middleware/cookies.c -o middleware/cookies.o $(CFLAGS)
