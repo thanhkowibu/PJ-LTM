@@ -36,8 +36,10 @@ Route routes[] = {
     {"POST", "/api/choice", choice, 1},
     {"POST", "/api/message", send_message, 1},
     {"GET", "/api/data", get_data, 1},
-    // {"OPTIONS", "/", set_option, 1},
-    // {"GET", "/events", handle_sse_events, 1}, // SSE route
+    {"GET", "/api/game/1/init", initialize_game, 0},
+    {"GET", "/api/game/1", get_game_data, 0},
+    {"POST", "/api/game/1", handle_choice, 0},
+    {"GET", "/api/game/1/result", get_game_result, 0},
 };
 
 
@@ -62,7 +64,7 @@ void handle_request(int client_sock) {
             "HTTP/1.1 204 No Content\r\n"
             "Access-Control-Allow-Origin: *\r\n"
             "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
-            "Access-Control-Allow-Headers: Content-Type\r\n"
+            "Access-Control-Allow-Headers: Content-Type, User-ID\r\n"
             "Connection: keep-alive\r\n\r\n";
         send(client_sock, response, strlen(response), 0);
         return;

@@ -99,3 +99,18 @@ int check_cookies(const char *request) {
     return 0;
 }
 
+int get_user_id_from_request(const char *request) {
+    const char *header_start = strstr(request, "User-ID: ");
+    if (header_start) {
+        header_start += strlen("User-ID: ");
+        const char *header_end = strstr(header_start, "\r\n");
+        if (header_end) {
+            int user_id_length = header_end - header_start;
+            char user_id[user_id_length + 1];
+            strncpy(user_id, header_start, user_id_length);
+            user_id[user_id_length] = '\0';
+            return atoi(user_id);
+        }
+    }
+    return -1; // Return -1 if User-ID header is not found
+}
