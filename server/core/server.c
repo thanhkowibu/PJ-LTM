@@ -34,9 +34,9 @@ Route routes[] = {
 
     {"GET", "/api/subscribe", subcribe, 1},
     {"POST", "/api/choice", choice, 1},
-    {"OPTIONS", "/api/message", send_message, 1},
+    {"POST", "/api/message", send_message, 1},
     {"GET", "/api/data", get_data, 1},
-    // {"GET", "/api/join-room", handle_join_room, 0},
+    {"OPTIONS", "", set_option, 1},
     // {"GET", "/events", handle_sse_events, 1}, // SSE route
 };
 
