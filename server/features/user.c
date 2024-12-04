@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include "../utils/utils.h"
 
-#define ACCOUNT "data/nguoidung.txt"
+#define ACCOUNT "database/nguoidung.txt"
 
 User *head = NULL;
 
