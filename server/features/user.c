@@ -3,15 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include "../utils/utils.h"
 
-#define ACCOUNT "data/nguoidung.txt"
+#define ACCOUNT "database/nguoidung.txt"
 
 User *head = NULL;
 
+__thread User *curUser = NULL; // Thread-local storage for current user
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-__thread User *curUser = NULL; 
 
 void loadUserFromFile() {
     pthread_mutex_lock(&mutex);
@@ -34,6 +35,11 @@ void loadUserFromFile() {
     pthread_mutex_unlock(&mutex);
 }
 
+void setCurUser(User *user) {
+    printf("Welcome %s", curUser->username);
+    curUser = user;
+}
+
 void saveUserToFile() {
     pthread_mutex_lock(&mutex);
 
@@ -53,37 +59,6 @@ void saveUserToFile() {
 }
 
 
-User * getCurUser() {
-    return curUser;
-}
-
-int setCurUser(User *user) {
-    curUser = user;
-    return 1;
-}
-
-int requiredLogin() {
-    return (curUser != NULL);
-}
-
-// Get info of cur User (will update when user have more info)
-int getCurrentUserInfo(char *username) {
-    if (curUser == NULL) {
-        return 0; // No current user
-    }
-    strcpy(username, curUser->username);
-    return 1; // Successfully retrieved current user info
-}
-
-// Set info of cur User (will update when user have more info)
-int setCurrentUserInfo (char *username) {
-    if(curUser == NULL){
-        return 0;
-    }
-    strcpy(curUser->username, username);
-    return 1;
-}
-
 int authenticate_user(const char *username, const char *password) {
     pthread_mutex_lock(&mutex);
     User *current = head;
@@ -97,6 +72,20 @@ int authenticate_user(const char *username, const char *password) {
     }
     pthread_mutex_unlock(&mutex);
     return 0; // Authentication failed
+}
+
+User * find_user(const char * username) {
+    pthread_mutex_lock(&mutex);
+    User *current = head;
+    while (current != NULL) {
+        if (strcmp(current->username, username) == 0) {
+            pthread_mutex_unlock(&mutex);
+            return current;
+        }
+        current = current->next;
+    }
+    pthread_mutex_unlock(&mutex);
+    return NULL;
 }
 
 int register_user(const char *username, const char *password) {
@@ -127,9 +116,6 @@ int register_user(const char *username, const char *password) {
 }
 
 int log_out() {
-    if(curUser == NULL){
-        return 0;
-    }
     curUser = NULL;
     return 1;
 }

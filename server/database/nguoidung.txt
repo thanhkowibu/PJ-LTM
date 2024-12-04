@@ -1,0 +1,5 @@
+viettel 6666 1 viettel.com
+thanh 1234 1 qldt.hust.edu.vn
+test 1111 1 8.8.8.8
+soict soict123 0 soict.hust.edu.vn
+hust hust123 1 soict.hust.edu.vn

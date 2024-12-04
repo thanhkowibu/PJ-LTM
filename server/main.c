@@ -4,8 +4,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/select.h>
-#include "handler/http_handler.h"
-#include "handler/sse.h"
+
+#include "core/server.h"
+#include "core/sse.h"
 
 #define PORT 8080
 
@@ -86,7 +87,7 @@ int main() {
 
         for (int i = 0; i < MAX_CLIENTS; i++) {
             if (clients[i].client_sock != -1 && FD_ISSET(clients[i].client_sock, &read_fds)) {
-                handle_http_request(clients[i].client_sock);
+                handle_request(clients[i].client_sock);
             }
         }
     }

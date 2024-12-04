@@ -1,0 +1,20 @@
+1|Apple|3|USD per lb|pic1.jpg
+2|Banana|5|USD per lb|pic2.jpg
+3|Carrot|7|USD per lb|pic3.jpg
+4|Tomato|9|USD per lb|pic4.jpg
+5|Potato|11|USD per lb|pic5.jpg
+6|Broccoli|13|USD per lb|pic6.jpg
+7|Spinach|15|USD per lb|pic7.jpg
+8|Onion|17|USD per lb|pic8.jpg
+9|Garlic|19|USD per lb|pic9.jpg
+10|Cucumber|21|USD per lb|pic10.jpg
+11|Bell Pepper|23|USD per lb|pic11.jpg
+12|Lettuce|25|USD per lb|pic12.jpg
+13|Strawberry|27|USD per lb|pic13.jpg
+14|Blueberry|29|USD per lb|pic14.jpg
+15|Orange|31|USD per lb|pic15.jpg
+16|Grapes|33|USD per lb|pic16.jpg
+17|Pineapple|35|USD per lb|pic17.jpg
+18|Mango|37|USD per lb|pic18.jpg
+19|Watermelon|39|USD per lb|pic19.jpg
+20|Peach|41|USD per lb|pic20.jpg
