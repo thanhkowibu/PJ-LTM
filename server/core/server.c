@@ -36,7 +36,7 @@ Route routes[] = {
     {"POST", "/api/choice", choice, 1},
     {"POST", "/api/message", send_message, 1},
     {"GET", "/api/data", get_data, 1},
-    {"OPTIONS", "", set_option, 1},
+    // {"OPTIONS", "/", set_option, 1},
     // {"GET", "/events", handle_sse_events, 1}, // SSE route
 };
 
@@ -57,6 +57,16 @@ void handle_request(int client_sock) {
 
     buffer[received_bytes] = '\0';
 
+    if (strncmp(buffer, "OPTIONS", 7) == 0) {
+        const char *response =
+            "HTTP/1.1 204 No Content\r\n"
+            "Access-Control-Allow-Origin: *\r\n"
+            "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+            "Access-Control-Allow-Headers: Content-Type\r\n"
+            "Connection: keep-alive\r\n\r\n";
+        send(client_sock, response, strlen(response), 0);
+        return;
+    }
     // Split buffer into request and json parts
     char *json_start = strstr(buffer, "\r\n\r\n");
     if (json_start != NULL) {
