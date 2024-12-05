@@ -106,7 +106,7 @@ void handle_logout(int client_sock, const char *request, const char *body) {
     // handle protected route
 
     if (check_cookies(request) && log_out()) {
-        // delete_session(extract_cookie(request, "session_id"));
+        delete_session(extract_cookie(request, "session_id"));
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("Logout successful"));
     } else {

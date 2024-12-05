@@ -61,6 +61,7 @@ void handle_request(int client_sock) {
 
     buffer[received_bytes] = '\0';
 
+    // direct route
     if (strncmp(buffer, "OPTIONS", 7) == 0) {
         const char *response =
             "HTTP/1.1 204 No Content\r\n"
@@ -146,5 +147,4 @@ void send_error_response(int client_sock, int status_code, const char *message) 
              "%s",
              status_code, message, message);
     send(client_sock, response, strlen(response), 0);
-    close(client_sock);
 }
