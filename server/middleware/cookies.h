@@ -10,6 +10,9 @@ typedef struct Session {
     struct Session *next;
 } Session;
 // Common utility functions
+int compare_string_sums(const char *str1, const char *str2);
+
+
 void generate_session_id(char *buffer, size_t length);
 void add_session(const char *username, char *session_id);
 const char * validate_session(const char *session_id);

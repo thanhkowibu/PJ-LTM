@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <json-c/json.h>
 
 #define SERVER_IP "127.0.0.1" // Change to your server's IP
 #define SERVER_PORT 8080      // Change to your server's port

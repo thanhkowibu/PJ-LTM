@@ -46,4 +46,4 @@ handler/http_handler.o: handler/http_handler.c handler/http_handler.h
 	$(CC) -c handler/http_handler.c -o handler/http_handler.o $(CFLAGS)
 
 clean:
-	rm -f main.o core/*.o features/*.o utils/*.o routes/*.o server
+	rm -f main.o core/*.o features/*.o utils/*.o routes/*.o server middleware/*.o handler/*.o
