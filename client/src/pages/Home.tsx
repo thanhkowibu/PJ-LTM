@@ -13,7 +13,7 @@ export const Home = () => {
     ? import.meta.env.VITE_LOCAL_SERVER_URL
     : import.meta.env.VITE_GUEST_SERVER_URL;
 
-    const fetchData = async () => {
+  const fetchData = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/data`, {
           headers: {
@@ -50,7 +50,7 @@ export const Home = () => {
   useEffect(() => {
     console.log('useEffect triggered');
     fetchData();
-    startSSE();
+    // startSSE();
   }, []);
 
   // Send a chat message
