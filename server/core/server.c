@@ -29,10 +29,10 @@ typedef struct {
 
 Route routes[] = {
     // AUTH ROUTES
-    {"POST", "/auth/login", handle_login, 0},
-    {"POST", "/auth/register", handle_register, 0},
-    {"GET", "/auth/logout", handle_logout, 0},
-    {"GET", "/test", test, 0},
+    {"POST", "/api/auth/login", handle_login, 0},
+    {"POST", "/api/auth/register", handle_register, 0},
+    {"GET", "/api/auth/logout", handle_logout, 0},
+    {"GET", "/api/test", test, 0},
 
     {"GET", "/api/subscribe", subcribe, 1}, 
     {"POST", "/api/choice", choice, 1},
@@ -40,12 +40,12 @@ Route routes[] = {
     {"GET", "/api/data", get_data, 1},
 
     // ROOM ROUTES
-    {"POST", "/room/join", join_room, 0}, 
-    {"POST", "/room/leave", leave_room, 0},
-    {"POST", "/room/create", add_room, 0},
-    {"POST", "/room/disband", disband_room, 0},
-    {"GET", "/room/get_info", get_room_info, 0},
-    {"GET", "/room/fetch_all_room", get_all_room_info, 0},
+    {"POST", "/api/room/join", join_room, 0}, 
+    {"POST", "/api/room/leave", leave_room, 0},
+    {"POST", "/api/room/create", add_room, 0},
+    {"POST", "/api/room/disband", disband_room, 0},
+    {"GET", "/api/room/get_info", get_room_info, 0},
+    {"GET", "/api/room/fetch_all_room", get_all_room_info, 0},
 
     {"GET", "/api/game/1/init", initialize_game, 0},
     {"GET", "/api/game/1", get_game_data, 0},
@@ -69,7 +69,7 @@ void handle_request(int client_sock) {
 
     buffer[received_bytes] = '\0';
 
-    // direct route
+    // Handle OPTIONS request for CORS preflight
     if (strncmp(buffer, "OPTIONS", 7) == 0) {
         const char *response =
             "HTTP/1.1 204 No Content\r\n"
@@ -81,6 +81,7 @@ void handle_request(int client_sock) {
         send(client_sock, response, strlen(response), 0);
         return;
     }
+
     // Split buffer into request and json parts
     char *json_start = strstr(buffer, "\r\n\r\n");
     if (json_start != NULL) {
@@ -94,7 +95,6 @@ void handle_request(int client_sock) {
     }
 
     route_request(client_sock, request, json);
-    // close(client_sock);
     return;
 }
 
