@@ -5,7 +5,7 @@
 #include <time.h>
 #include <json-c/json.h>
 
-#define TOPIC "database/topic2/topic2.txt"
+#define TOPIC "database/topic1/topic1.txt"
 #define BUFF_SIZE 4096
 
 Question questions[5];
@@ -42,11 +42,31 @@ void create_questions() {
         int idx1 = indices[i];
         int idx2 = indices[i + 1];
 
-        sscanf(data[idx1], "%d|%[^|]|%d|%[^|]|%[^|]", &questions[i].id, questions[i].name1, &questions[i].value1, questions[i].unit, questions[i].pic1);
-        sscanf(data[idx2], "%d|%[^|]|%d|%[^|]|%[^|]", &questions[i].id, questions[i].name2, &questions[i].value2, questions[i].unit, questions[i].pic2);
+        sscanf(data[idx1], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+            &questions[i].id, 
+            questions[i].name1, 
+            &questions[i].value1, 
+            questions[i].unit, 
+            questions[i].pic1);
+
+        sscanf(data[idx2], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+            &questions[i].id, 
+            questions[i].name2, 
+            &questions[i].value2, 
+            questions[i].unit, 
+            questions[i].pic2);
+
+
+        printf("Raw line 1: %s\n", data[idx1]);
+printf("Raw line 2: %s\n", data[idx2]);
+printf("Parsed 1: %d | %s | %lld | %s | %s\n", 
+    questions[i].id, questions[i].name1, questions[i].value1, questions[i].unit, questions[i].pic1);
+printf("Parsed 2: %d | %s | %lld | %s | %s\n", 
+    questions[i].id, questions[i].name2, questions[i].value2, questions[i].unit, questions[i].pic2);
+
 
         questions[i].answer = (questions[i].value1 >= questions[i].value2) ? 1 : 2;
-        printf("%d\n",questions[i].answer);
+        printf("%d\n", questions[i].answer);
     }
 
     // Initialize client progress

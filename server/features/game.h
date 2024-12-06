@@ -2,18 +2,18 @@
 #define GAME_H
 
 #define MAX_LINES 20
-#define MAX_LINE_LENGTH 256
+#define MAX_LINE_LENGTH 1000
 #define MAX_PLAYERS 3
 
 typedef struct {
     int id;
     char name1[50];
     char name2[50];
-    char pic1[50];
-    char pic2[50];
-    int value1;
-    int value2;
+    long long int value1;
+    long long int value2;
     char unit[50];
+    char pic1[200];
+    char pic2[200];
     int answer;
 } Question;
 

@@ -20,6 +20,10 @@ void initialize_game(int client_sock, const char *request, const char *body) {
 void get_game_data(int client_sock, const char *request, const char *body) {
     // Find the client progress
     int user_id = get_user_id_from_request(request); // Implement this function to extract user_id from request
+    // if (user_id == -1) {
+    //     sendError(client_sock, "Invalid User-ID", 400);
+    //     return;
+    // }
     int client_index = -1;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (client_progress[i].user_id == user_id) {
@@ -45,6 +49,11 @@ void get_game_data(int client_sock, const char *request, const char *body) {
     }
 
     int question_index = client_progress[client_index].current_question;
+
+    if (question_index < 0 || question_index >= 5) {
+        sendError(client_sock, "Invalid question index", 500);
+        return;
+    }
 
     struct json_object *json_response = json_object_new_object();
     json_object_object_add(json_response, "id", json_object_new_int(questions[question_index].id));
