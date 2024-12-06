@@ -174,3 +174,14 @@ Room* get_room_by_name(const char *name) {
     pthread_mutex_unlock(&room_mutex);
     return NULL; // Room not found
 }
+
+int get_all_rooms(Room all_rooms[]) {
+    pthread_mutex_lock(&room_mutex);
+    
+    for (int i = 0; i < room_count; i++) {
+        all_rooms[i] = rooms[i];
+    }
+
+    pthread_mutex_unlock(&room_mutex);
+    return room_count;
+}
