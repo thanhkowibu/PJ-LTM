@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/auth"
+const BASE_URL = "http://localhost:8080/api"
 
 type Props = {
   isOpen: boolean;
@@ -55,7 +55,7 @@ const Register: React.FC<Props> = ({
     console.log(values);
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/register`,values, {
+      const res = await axios.post(`${BASE_URL}/auth/register`,values, {
         headers: {
           'Content-Type': 'application/json',
         }

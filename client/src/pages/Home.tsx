@@ -23,7 +23,7 @@ export const Home = () => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8080/auth/logout`, {
+      const res = await axios.get(`${BASE_URL}/auth/logout`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -33,7 +33,9 @@ export const Home = () => {
       if (res.data.message){
         toast.success(res.data.message);
       }
-      localStorage.removeItem("username")
+      if (res.data.status === "success"){
+        localStorage.removeItem("username")
+      }
     } catch (err: any) {
       console.log(err)
       if (err.message){
