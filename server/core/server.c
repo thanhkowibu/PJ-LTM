@@ -28,6 +28,7 @@ typedef struct {
 } Route;
 
 Route routes[] = {
+    // AUTH ROUTES
     {"POST", "/auth/login", handle_login, 0},
     {"POST", "/auth/register", handle_register, 0},
     {"GET", "/auth/logout", handle_logout, 0},
@@ -37,9 +38,14 @@ Route routes[] = {
     {"POST", "/api/choice", choice, 1},
     {"POST", "/api/message", send_message, 1},
     {"GET", "/api/data", get_data, 1},
+
+    // ROOM ROUTES
     {"POST", "/room/join", join_room, 0}, 
+    {"POST", "/room/leave", leave_room, 0},
     {"POST", "/room/create", add_room, 0},
+    {"POST", "/room/disband", disband_room, 0},
     {"GET", "/room/get_info", get_room_info, 0},
+    {"GET", "/room/fetch_all_room", get_all_room_info, 0},
 
     {"GET", "/api/game/1/init", initialize_game, 0},
     {"GET", "/api/game/1", get_game_data, 0},

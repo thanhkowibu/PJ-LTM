@@ -25,5 +25,6 @@ int delete_user_from_room(const char *room_name, const char * curUser);
 int get_user_count_in_room(const char *room_name);
 int check_user_in_room(const char *room_name, const char * curUser);
 Room* get_room_by_name(const char *name);
+int get_all_rooms(Room all_rooms[]);
 
 #endif // ROOM_H
