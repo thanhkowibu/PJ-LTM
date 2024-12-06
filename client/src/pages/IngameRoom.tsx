@@ -76,7 +76,7 @@ export const IngameRoom = () => {
       const response = await axios.get(`${BASE_URL}/game/1`, {
         headers: {
           'Content-Type': 'application/json',
-          'User-ID': userId,
+          // 'User-ID': userId,
         },
       });
       console.log(response.data);
@@ -157,12 +157,12 @@ export const IngameRoom = () => {
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src="/apple.jpg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src={pic1} alt="" />
       </div>
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src="/banana.jpg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src={pic2}alt="" />
       </div>
       <div className="fixed top-16 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="text-4xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
