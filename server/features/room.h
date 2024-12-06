@@ -14,11 +14,12 @@ typedef struct Room {
     // id thay vi ten -> de tim nhung kho xoa hon 1 chut
     char name[50];
     int capacity;
+    char topic[50];
     UserNode *users;
     User * host;
 } Room;
 
-int create_room(const char *name, int capacity, const char * curUser);
+int create_room(const char *name, int capacity, const char * topic, const char * curUser);
 int delete_room(const char *name);
 int add_user_to_room(const char *room_name, const char * curUser);
 int delete_user_from_room(const char *room_name, const char * curUser);

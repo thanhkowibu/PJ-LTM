@@ -29,10 +29,10 @@ typedef struct {
 
 Route routes[] = {
     // AUTH ROUTES
-    {"POST", "/auth/login", handle_login, 0},
-    {"POST", "/auth/register", handle_register, 0},
-    {"GET", "/auth/logout", handle_logout, 0},
-    {"GET", "/test", test, 0},
+    {"POST", "/api/auth/login", handle_login, 0},
+    {"POST", "/api/auth/register", handle_register, 0},
+    {"GET", "/api/auth/logout", handle_logout, 0},
+    {"GET", "/api/test", test, 0},
 
     {"GET", "/api/subscribe", subcribe, 1}, 
     {"POST", "/api/choice", choice, 1},
@@ -40,12 +40,12 @@ Route routes[] = {
     {"GET", "/api/data", get_data, 1},
 
     // ROOM ROUTES
-    {"POST", "/room/join", join_room, 0}, 
-    {"POST", "/room/leave", leave_room, 0},
-    {"POST", "/room/create", add_room, 0},
-    {"POST", "/room/disband", disband_room, 0},
-    {"GET", "/room/get_info", get_room_info, 0},
-    {"GET", "/room/fetch_all_room", get_all_room_info, 0},
+    {"POST", "/api/room/join", join_room, 0}, 
+    {"POST", "/api/room/leave", leave_room, 0},
+    {"POST", "/api/room/create", add_room, 0},
+    {"POST", "/api/room/disband", disband_room, 0},
+    {"GET", "/api/room/get_info", get_room_info, 0},
+    {"GET", "/api/room/fetch_all_room", get_all_room_info, 0},
 
     {"GET", "/api/game/1/init", initialize_game, 0},
     {"GET", "/api/game/1", get_game_data, 0},
@@ -103,7 +103,7 @@ void parse_request(const char *request, char *method, char *path) {
 
 
 void route_request(int client_sock, const char *request, const char *json) {
-    printf("%s-%s\n",request,json);
+    // printf("%s-%s\n",request,json);
     char method[8], path[256];
     parse_request(request, method, path);
 
@@ -119,9 +119,9 @@ void route_request(int client_sock, const char *request, const char *json) {
                 routes[i].handler(client_sock, request, json); // No body needed for SSE
             } else {
                 // Call RESTful handler
-                printf("Routing to RESTful handler for: %s %s\n", method, path);
+                // printf("Routing to RESTful handler for: %s %s\n", method, path);
 
-                printf("json: %s\n", json);
+                // printf("json: %s\n", json);
                 routes[i].handler(client_sock, request, json);
             }
             return;
