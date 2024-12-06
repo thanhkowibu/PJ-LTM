@@ -23,6 +23,7 @@ export const IngameRoom = () => {
   const [value1, setValue1] = useState(0);
   const [value2, setValue2] = useState(0);
   
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     if (isShown) {
@@ -69,7 +70,7 @@ export const IngameRoom = () => {
 
   // game logic
   const fetchData = async () => {
-    const userId = localStorage.getItem('userId');
+
     console.log("userId=",userId)
     try {
       const response = await axios.get(`${BASE_URL}/game/1`, {
@@ -125,7 +126,6 @@ export const IngameRoom = () => {
   }, []);
 
   const handleChoice = async (choice: number) => {
-    const userId = localStorage.getItem('userId');
     if (countdown > 0) {
       setIsShown(true);
       setIsTimerRunning(false);
@@ -167,6 +167,11 @@ export const IngameRoom = () => {
       <div className="fixed top-16 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="text-4xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
           <span>Which of two is higher in {unit} ?</span>
+        </div>
+      </div>
+      <div className="fixed bottom-4 left-20 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div className="text-2xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
+          <span>UserID: {userId}</span>
         </div>
       </div>
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">

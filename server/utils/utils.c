@@ -20,7 +20,8 @@ void sendResponse(int client_sock, const char *response) {
     snprintf(res, sizeof(res),
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s",
         strlen(response), response);
@@ -33,7 +34,8 @@ void sendError(int client_sock, const char *message, int error_code) {
     snprintf(response, sizeof(response),
         "HTTP/1.1 %d %s\r\n"
         "Content-Type: text/plain\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s",error_code,message,
         strlen(message), message);
@@ -53,7 +55,8 @@ void send_cookie_response(int client_sock, const char *response, const char *use
     snprintf(res, sizeof(res),
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
         "Set-Cookie: session_id=%s; HttpOnly; Path=/\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s", session_id,

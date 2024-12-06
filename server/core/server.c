@@ -66,9 +66,10 @@ void handle_request(int client_sock) {
     if (strncmp(buffer, "OPTIONS", 7) == 0) {
         const char *response =
             "HTTP/1.1 204 No Content\r\n"
-            "Access-Control-Allow-Origin: *\r\n"
+            "Access-Control-Allow-Origin: http://localhost:5173\r\n"
             "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type, User-ID\r\n"
+            "Access-Control-Allow-Credentials: true\r\n"
             "Connection: keep-alive\r\n\r\n";
         send(client_sock, response, strlen(response), 0);
         return;
