@@ -69,8 +69,8 @@ const Register: React.FC<Props> = ({
       form.reset();
     } catch (err: any) {
       console.log(err)
-      if (err.message){
-        toast.error(err.message);
+      if (err.response.data.message){
+        toast.error(err.response.data.message);
       }
     } finally {
       setLoading(false);
@@ -82,8 +82,6 @@ const Register: React.FC<Props> = ({
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          tabIndex={-1}
-          aria-hidden="true"
           className="flex bg-black/30 backdrop-blur-[2px] overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-full max-h-full"
         >
           <div
@@ -91,10 +89,10 @@ const Register: React.FC<Props> = ({
             className="relative p-4 w-full max-w-lg max-h-full"
           >
             {/* Modal content */}
-            <div className="relative rounded-lg shadow bg-gray-700/90 border-[1px] border-white">
+            <div className="relative rounded-lg shadow bg-gray-800/90 border-[1px] border-white">
               {/* Modal header */}
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-600">
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-2xl font-semibold text-white">
                   Register to our game
                 </h3>
                 <button

@@ -57,7 +57,7 @@ void send_cookie_response(int client_sock, const char *response, const char *use
         "Content-Type: application/json\r\n"
         "Access-Control-Allow-Origin: http://localhost:5173\r\n"
         "Access-Control-Allow-Credentials: true\r\n"
-        "Set-Cookie: session_id=%s; HttpOnly; Path=/\r\n"
+        "Set-Cookie: session_id=%s; HttpOnly; Path=/;SameSite=None;Secure\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s", session_id,
         strlen(response), response);

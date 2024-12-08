@@ -111,6 +111,8 @@ int register_user(const char *username, const char *password) {
     new_user->next = head;
     head = new_user;
 
+    // saveUserToFile();
+
     pthread_mutex_unlock(&mutex);
     return 1; // Registration successful
 }

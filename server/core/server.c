@@ -31,7 +31,7 @@ Route routes[] = {
     // AUTH ROUTES
     {"POST", "/api/auth/login", handle_login, 0},
     {"POST", "/api/auth/register", handle_register, 0},
-    {"GET", "/api/auth/logout", handle_logout, 0},
+    {"POST", "/api/auth/logout", handle_logout, 0},
     {"GET", "/api/test", test, 0},
 
     {"GET", "/api/subscribe", subcribe, 1}, 
@@ -44,7 +44,7 @@ Route routes[] = {
     {"POST", "/api/room/leave", leave_room, 0},
     {"POST", "/api/room/create", add_room, 0},
     {"POST", "/api/room/disband", disband_room, 0},
-    {"GET", "/api/room/get_info", get_room_info, 0},
+    {"POST", "/api/room/get_info", get_room_info, 0},
     {"GET", "/api/room/fetch_all_room", get_all_room_info, 0},
 
     {"GET", "/api/game/1/init", initialize_game, 0},

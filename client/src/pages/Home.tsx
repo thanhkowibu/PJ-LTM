@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import Login from '@/modals/Login';
 import Register from '@/modals/Register';
 import toast from 'react-hot-toast';
+import CreateRoom from '@/modals/CreateRoom';
+import RoomList from '@/modals/RoomList';
 
-const BASE_URL = "http://127.0.0.1:8080/api"
+const BASE_URL = "http://localhost:8080/api"
 
 export const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
   const [isRoomListOpen, setIsRoomListOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +26,7 @@ export const Home = () => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}/auth/logout`, {
+      const res = await axios.post(`${BASE_URL}/auth/logout`, {},{
         headers: {
           'Content-Type': 'application/json',
         },
@@ -59,10 +62,24 @@ export const Home = () => {
           <img className="object-cover size-full" src="/cover.png" alt="cover" />
         </div>
         <div className="flex gap-32 items-center text-2xl font-semibold text-white text-center">
-          <button className='px-8 py-4 rounded-full border-4 hover:bg-white hover:text-black transition duration-300'>
+          <button onClick={() => {
+            if (username) {
+              setIsRoomListOpen(true);
+            } else {
+              toast.error("You need to login first");
+            }
+          }} 
+           className='px-8 py-4 rounded-full border-4 hover:bg-white hover:text-black transition duration-300'>
             Join room
           </button>
-          <button className='px-8 py-4 rounded-full border-4 hover:bg-white hover:text-black transition duration-300'>
+          <button onClick={() => {
+            if (username) {
+              setIsCreateRoomOpen(true);
+            } else {
+              toast.error("You need to login first");
+            }
+          }} 
+          className='px-8 py-4 rounded-full border-4 hover:bg-white hover:text-black transition duration-300'>
             Create room
           </button>
         </div>
@@ -93,6 +110,14 @@ export const Home = () => {
         isOpen={isRegisterOpen}
         setIsOpen={setIsRegisterOpen}
         setOtherOpen={setIsLoginOpen}
+      />
+      <CreateRoom
+        isOpen={isCreateRoomOpen}
+        setIsOpen={setIsCreateRoomOpen}
+      />
+      <RoomList
+        isOpen={isRoomListOpen}
+        setIsOpen={setIsRoomListOpen}
       />
     </div>
   );

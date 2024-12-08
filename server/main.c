@@ -7,6 +7,7 @@
 
 #include "core/server.h"
 #include "core/sse.h"
+#include "features/user.h"
 
 #define PORT 8080
 
@@ -27,6 +28,7 @@ int main() {
     socklen_t addrlen = sizeof(client_addr);
 
     init_clients();
+    // loadUserFromFile();
 
     if ((server_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("Socket creation failed");
