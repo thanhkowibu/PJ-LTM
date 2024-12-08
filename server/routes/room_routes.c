@@ -78,7 +78,7 @@ void leave_room(int client_sock, const char *request, const char *body) {
     if (check_cookies(request)) {
         const char *session_id = extract_cookie(request, "session_id");
         username = validate_session(session_id);
-        printf("%s", username);
+        printf("Current User: %s", username);
     }
 
     if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && username) {
@@ -88,8 +88,17 @@ void leave_room(int client_sock, const char *request, const char *body) {
         return;
     }
 
+    // if user who left is the host, disband the room instead
+
+    Room *room = get_room_by_name(room_name);
+    if (strcmp(username,room->host->username)==0) {
+        disband_room(client_sock, request, body);
+        return;
+    }
+
     struct json_object *json_response = json_object_new_object();
     if (room_name && delete_user_from_room(room_name, username)) {
+
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("User left the room"));
     } else {
@@ -104,10 +113,11 @@ void leave_room(int client_sock, const char *request, const char *body) {
 
 void add_room(int client_sock, const char *request, const char *body) {
     struct json_object *json_request = json_tokener_parse(body);
-    struct json_object *room_name_obj, *capacity_obj;
+    struct json_object *room_name_obj, *capacity_obj, *topic_obj;
 
     const char *room_name = NULL;
     const char *username = NULL;
+    const char * topic = NULL;
 
     if (check_cookies(request)) {
         const char *session_id = extract_cookie(request, "session_id");
@@ -116,21 +126,31 @@ void add_room(int client_sock, const char *request, const char *body) {
     }
 
     int capacity = 0;
+
     if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) &&
-        json_object_object_get_ex(json_request, "capacity", &capacity_obj) && username) {
+        json_object_object_get_ex(json_request, "capacity", &capacity_obj) && 
+        json_object_object_get_ex(json_request, "topic", &topic_obj) && username) {
         room_name = json_object_get_string(room_name_obj);
         capacity = json_object_get_int(capacity_obj);
+        topic = json_object_get_string(topic_obj);
         // username = json_object_get_string(username_obj);
         if (capacity < 2) {
             capacity = 2;
+        } else if (capacity > 10) {
+            capacity = 10;
         }
     } else {
         sendError(client_sock, "Invalid request", 400);
         return;
     }
 
+    if (get_room_by_name(room_name) != NULL) {
+        sendError(client_sock, "Room already exists", 400);
+        return;
+    }
+
     struct json_object *json_response = json_object_new_object();
-    if (room_name && create_room(room_name, capacity, username)) {
+    if (room_name && create_room(room_name, capacity, topic, username)) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("Room created successfully"));
     } else {
@@ -195,6 +215,7 @@ void get_room_info(int client_sock, const char *request, const char *body) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "room_name", json_object_new_string(room->name));
         json_object_object_add(json_response, "capacity", json_object_new_int(room->capacity));
+        json_object_object_add(json_response, "topic", json_object_new_string(room->topic));
         json_object_object_add(json_response, "host", json_object_new_string(room->host->username));
 
         // Retrieve the list of users in the room
@@ -231,6 +252,7 @@ void get_all_room_info(int client_sock, const char *request, const char *body) {
         struct json_object *room_obj = json_object_new_object();
         json_object_object_add(room_obj, "room_name", json_object_new_string(current.name));
         json_object_object_add(room_obj, "capacity", json_object_new_int(current.capacity));
+        json_object_object_add(room_obj, "topic", json_object_new_string(current.topic));
         json_object_object_add(room_obj, "host", json_object_new_string(current.host->username));
 
         struct json_object *users_array = json_object_new_array();

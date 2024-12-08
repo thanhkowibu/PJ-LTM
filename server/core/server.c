@@ -104,7 +104,7 @@ void parse_request(const char *request, char *method, char *path) {
 
 
 void route_request(int client_sock, const char *request, const char *json) {
-    printf("%s-%s\n",request,json);
+    // printf("%s-%s\n",request,json);
     char method[8], path[256];
     parse_request(request, method, path);
 
@@ -120,9 +120,9 @@ void route_request(int client_sock, const char *request, const char *json) {
                 routes[i].handler(client_sock, request, json); // No body needed for SSE
             } else {
                 // Call RESTful handler
-                printf("Routing to RESTful handler for: %s %s\n", method, path);
+                // printf("Routing to RESTful handler for: %s %s\n", method, path);
 
-                printf("json: %s\n", json);
+                // printf("json: %s\n", json);
                 routes[i].handler(client_sock, request, json);
             }
             return;

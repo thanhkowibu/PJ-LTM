@@ -23,7 +23,7 @@ int countUserRoom(UserNode *users) {
 }
 
 // Create a new room, Curuser se la thang dau tien va la host
-int create_room(const char *name, int capacity, const char * curUser) {
+int create_room(const char *name, int capacity, const char *topic, const char *curUser) {
     pthread_mutex_lock(&room_mutex);
     if (room_count >= MAX_ROOMS) {
         pthread_mutex_unlock(&room_mutex);
@@ -34,9 +34,11 @@ int create_room(const char *name, int capacity, const char * curUser) {
     strncpy(new_room->name, name, sizeof(new_room->name) - 1);
     new_room->name[sizeof(new_room->name) - 1] = '\0';
     new_room->capacity = capacity;
-    User * cur = find_user(curUser);
-    // printf("%s\n",cur->username);
+    strncpy(new_room->topic, topic, sizeof(new_room->topic) - 1);
+    new_room->topic[sizeof(new_room->topic) - 1] = '\0';
+    User *cur = find_user(curUser);
     new_room->host = cur;
+
     // Create a new user node for the host
     UserNode *new_user_node = malloc(sizeof(UserNode));
     if (new_user_node == NULL) {
@@ -44,6 +46,7 @@ int create_room(const char *name, int capacity, const char * curUser) {
         return 0; // Memory allocation failed
     }
     new_user_node->user = cur;
+    new_user_node->next = NULL;
     new_room->users = new_user_node;
 
     pthread_mutex_unlock(&room_mutex);
