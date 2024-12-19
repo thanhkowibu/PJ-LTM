@@ -8,6 +8,8 @@
 #include "core/server.h"
 #include "core/sse.h"
 
+#include "features/user.h"
+
 #define PORT 8080
 
 Client clients[MAX_CLIENTS];
@@ -48,6 +50,8 @@ int main() {
         close(server_sock);
         exit(EXIT_FAILURE);
     }
+    
+    _initUser();
 
     printf("Server listening on port %d\n", PORT);
 
@@ -92,6 +96,8 @@ int main() {
         }
     }
 
+
+    _cleanUser();
     close(server_sock);
     return 0;
 }

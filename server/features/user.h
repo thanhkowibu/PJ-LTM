@@ -10,10 +10,9 @@ typedef struct User {
     struct User *next;
 } User;
 
+void _initUser();
+void _cleanUser();
 
-
-void loadUserFromFile();
-void saveUserToFile();
 
 int authenticate_user(const char *username, const char *password);
 int register_user(const char *username, const char *password);
