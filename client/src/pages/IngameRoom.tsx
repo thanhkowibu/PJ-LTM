@@ -99,12 +99,13 @@ export const IngameRoom = () => {
     
       eventSource.onmessage = (event) => {
         console.log("SSE event data:", event.data);
-        if (event.data === "Next") {
+        const data = JSON.parse(event.data);
+        if (data.action === "next" && data.room_name === id) {
           console.log("Calling fetchData due to Next event");
           setTimeout(() => {
             fetchData();
           }, 3500);
-        } else if (event.data === "Finish") {
+        } else if (data.action === "finish" && data.room_name === id) {
           console.log("Navigating to /result/1 due to Finish event");
           setTimeout(() => {
             navigate(`/result/${id}`);
@@ -171,8 +172,8 @@ export const IngameRoom = () => {
           <span>Which of two is higher in {unit} ?</span>
         </div>
       </div>
-      <div className="fixed bottom-4 left-20 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
-        <div className="text-2xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
+      <div className="fixed bottom-4 left-28 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div className="text-xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
           <span>Username: {username}</span>
         </div>
       </div>

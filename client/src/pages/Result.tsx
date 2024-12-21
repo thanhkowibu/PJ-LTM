@@ -1,10 +1,11 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const BASE_URL = "http://127.0.0.1:8080/api"
 
 export const Result = () => {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [results, setResults] = useState([]);
   
@@ -57,6 +58,11 @@ export const Result = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="fixed bottom-4 left-28 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div onClick={()=>navigate(`/`)} className="text-2xl text-white/90 rounded-xl px-4 py-1 font-bold flex items-center justify-center cursor-pointer hover:underline">
+          <span>Back to home</span>
+        </div>
       </div>
     </div>
   )

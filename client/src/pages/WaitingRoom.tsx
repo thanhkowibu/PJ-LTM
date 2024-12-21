@@ -43,19 +43,19 @@ export const WaitingRoom = () => {
     eventSource.onmessage = (event) => {
       console.log("SSE event data:", event.data);
       const data = JSON.parse(event.data);
-      if (data.action === "join" && data.username !== username) {
+      if (data.action === "join" && data.username !== username && data.room_name === id) {
         setRoomInfo((prevRoomInfo: any) => ({
           ...prevRoomInfo,
           users: [...prevRoomInfo.users, { username: data.username }]
         }));
-      } else if (data.action === "leave" && data.username !== username) {
+      } else if (data.action === "leave" && data.username !== username && data.room_name === id) {
         setRoomInfo((prevRoomInfo: any) => ({
           ...prevRoomInfo,
           users: prevRoomInfo.users.filter((user: any) => user.username !== data.username)
         }));
-      } else if (data.action === "disband" ) {
+      } else if (data.action === "disband" && data.room_name === id) {
         navigate("/");
-      } else if (data.action === "start" ) {
+      } else if (data.action === "start" && data.room_name === id) {
         navigate(`/game/${id}`);
       }
     };
@@ -107,7 +107,14 @@ export const WaitingRoom = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/game/init`, {room_name: id} ,{
+      console.log({
+        room_name: id,
+        num_players: roomInfo.users.length
+      })
+      const res = await axios.post(`${BASE_URL}/game/init`, {
+        room_name: id,
+        num_players: roomInfo.users.length
+      } ,{
         headers: {
           'Content-Type': 'application/json',
         },
