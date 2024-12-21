@@ -1,8 +1,6 @@
 #include "utils.h"
-
 #include "../features/user.h"
 #include "../features/room.h"
-
 #include <json-c/json.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,7 +18,8 @@ void sendResponse(int client_sock, const char *response) {
     snprintf(res, sizeof(res),
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s",
         strlen(response), response);
@@ -33,9 +32,10 @@ void sendError(int client_sock, const char *message, int error_code) {
     snprintf(response, sizeof(response),
         "HTTP/1.1 %d %s\r\n"
         "Content-Type: text/plain\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Length: %zu\r\n"
-        "Connection: keep-alive\r\n\r\n%s",error_code,message,
+        "Connection: keep-alive\r\n\r\n%s", error_code, message,
         strlen(message), message);
 
     send(client_sock, response, strlen(response), 0);
@@ -47,14 +47,14 @@ void send_cookie_response(int client_sock, const char *response, const char *use
 
     // Add the session to the store
     add_session(username, session_id);
-    // printf("%s\n", username);
 
     char res[BUFF_SIZE];
     snprintf(res, sizeof(res),
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
-        "Set-Cookie: session_id=%s; HttpOnly; Path=/\r\n"
+        "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+        "Access-Control-Allow-Credentials: true\r\n"
+        "Set-Cookie: session_id=%s; HttpOnly; Path=/; SameSite=None; Secure\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n\r\n%s", session_id,
         strlen(response), response);
@@ -65,6 +65,7 @@ void send_cookie_response(int client_sock, const char *response, const char *use
 const char *extract_cookie(const char *request, const char *cookie_name) {
     printf("%s\n", request);
     const char *cookie_header = strstr(request, "Cookie: ");
+    printf("Cookie header: %s\n", cookie_header);
     if (!cookie_header) return NULL;
 
     cookie_header += strlen("Cookie: ");
@@ -76,20 +77,21 @@ const char *extract_cookie(const char *request, const char *cookie_name) {
     size_t length = end ? (size_t)(end - start) : strlen(start);
 
     char *cookie_value = malloc(length + 1); // Allocate space for null terminator
-    strncpy(cookie_value, start, length-1);
+    strncpy(cookie_value, start, length);
     cookie_value[length] = '\0'; // Null terminator
+    printf("Cookie value: %s\n", cookie_value);
     return cookie_value;
 }
 
 int check_cookies(const char *request) {
     const char *session_id = extract_cookie(request, "session_id");
-    // printf("%s", session_id);
+    printf("Session: %s\n", session_id);
     
     if (!session_id) {
         return 0;
     }
     const char *username = validate_session(session_id);
-    // printf("User: %s\n", username);
+    printf("User: %s\n\n", username);
     free((void *)session_id);
 
     if (username && find_user(username) != NULL) {

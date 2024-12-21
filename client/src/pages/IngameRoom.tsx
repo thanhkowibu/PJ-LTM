@@ -1,12 +1,14 @@
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react";
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const BASE_URL = "http://127.0.0.1:8080/api"
+const BASE_URL = "http://localhost:8080/api"
 
 export const IngameRoom = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
   const [isShown, setIsShown] = useState(false);
   const [name1, setName1] = useState("");
   const [name2, setName2] = useState("");
@@ -14,6 +16,8 @@ export const IngameRoom = () => {
   const [pic2, setPic2] = useState("");
   const [unit, setUnit] = useState("");
   const [score, setScore] = useState(0);
+
+  const username = localStorage.getItem("username")
 
   // animation
   const [countdown, setCountdown] = useState(200); // 200 for 20 seconds with 0.1s interval
@@ -23,7 +27,6 @@ export const IngameRoom = () => {
   const [value1, setValue1] = useState(0);
   const [value2, setValue2] = useState(0);
   
-
   useEffect(() => {
     if (isShown) {
       const duration = 1500;
@@ -69,14 +72,13 @@ export const IngameRoom = () => {
 
   // game logic
   const fetchData = async () => {
-    const userId = localStorage.getItem('userId');
-    console.log("userId=",userId)
+
     try {
-      const response = await axios.get(`${BASE_URL}/game/1`, {
+      const response = await axios.post(`${BASE_URL}/game`, { room_name: id }, {
         headers: {
           'Content-Type': 'application/json',
-          'User-ID': userId,
         },
+        withCredentials: true // Ensure cookies are sent with the request
       });
       console.log(response.data);
       setName1(response.data.name1);
@@ -97,15 +99,16 @@ export const IngameRoom = () => {
     
       eventSource.onmessage = (event) => {
         console.log("SSE event data:", event.data);
-        if (event.data === "Next") {
+        const data = JSON.parse(event.data);
+        if (data.action === "next" && data.room_name === id) {
           console.log("Calling fetchData due to Next event");
           setTimeout(() => {
             fetchData();
           }, 3500);
-        } else if (event.data === "Finish") {
+        } else if (data.action === "finish" && data.room_name === id) {
           console.log("Navigating to /result/1 due to Finish event");
           setTimeout(() => {
-            navigate("/result/1");
+            navigate(`/result/${id}`);
           }, 3500);
         }
       };
@@ -125,19 +128,19 @@ export const IngameRoom = () => {
   }, []);
 
   const handleChoice = async (choice: number) => {
-    const userId = localStorage.getItem('userId');
     if (countdown > 0) {
       setIsShown(true);
       setIsTimerRunning(false);
       console.log(choice);
       try {
-        const response = await axios.post(`${BASE_URL}/game/1`, {
-          choice
+        const response = await axios.post(`${BASE_URL}/game/choice`, {
+          choice,
+          room_name: id
         }, {
           headers: {
             'Content-Type': 'application/json',
-            'User-ID': userId,
-          }
+          },
+          withCredentials: true
         });
         console.log(response.data);
         setScore((pv) => pv + response.data.score);
@@ -157,16 +160,21 @@ export const IngameRoom = () => {
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src="/apple.jpg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(1)} className="object-cover size-full" src={pic1} alt="" />
       </div>
       <div className={cn("brightness-50 hover:brightness-[.4] transition duration-300 cursor-pointer",
         {"cursor-default select-none hover:brightness-50": isShown}
       )}>
-        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src="/banana.jpg" alt="" />
+        <img onClick={() => !isShown && countdown > 0 && handleChoice(2)} className="object-cover size-full" src={pic2}alt="" />
       </div>
       <div className="fixed top-16 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="text-4xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
           <span>Which of two is higher in {unit} ?</span>
+        </div>
+      </div>
+      <div className="fixed bottom-4 left-28 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div className="text-xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
+          <span>Username: {username}</span>
         </div>
       </div>
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">

@@ -31,7 +31,7 @@ Route routes[] = {
     // AUTH ROUTES
     {"POST", "/api/auth/login", handle_login, 0},
     {"POST", "/api/auth/register", handle_register, 0},
-    {"GET", "/api/auth/logout", handle_logout, 0},
+    {"POST", "/api/auth/logout", handle_logout, 0},
     {"GET", "/api/test", test, 0},
 
     {"GET", "/api/subscribe", subcribe, 1}, 
@@ -44,13 +44,13 @@ Route routes[] = {
     {"POST", "/api/room/leave", leave_room, 0},
     {"POST", "/api/room/create", add_room, 0},
     {"POST", "/api/room/disband", disband_room, 0},
-    {"GET", "/api/room/get_info", get_room_info, 0},
+    {"POST", "/api/room/get_info", get_room_info, 0},
     {"GET", "/api/room/fetch_all_room", get_all_room_info, 0},
 
-    {"GET", "/api/game/1/init", initialize_game, 0},
-    {"GET", "/api/game/1", get_game_data, 0},
-    {"POST", "/api/game/1", handle_choice, 0},
-    {"GET", "/api/game/1/result", get_game_result, 0},
+    {"POST", "/api/game/init", initialize_game, 0},
+    {"POST", "/api/game", get_game_data, 0},
+    {"POST", "/api/game/choice", handle_choice, 0},
+    {"POST", "/api/game/result", get_game_result, 0},
 };
 
 // middleware
@@ -69,17 +69,19 @@ void handle_request(int client_sock) {
 
     buffer[received_bytes] = '\0';
 
-    // direct route
+    // Handle OPTIONS request for CORS preflight
     if (strncmp(buffer, "OPTIONS", 7) == 0) {
         const char *response =
             "HTTP/1.1 204 No Content\r\n"
-            "Access-Control-Allow-Origin: *\r\n"
+            "Access-Control-Allow-Origin: http://localhost:5173\r\n"
             "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type, User-ID\r\n"
+            "Access-Control-Allow-Credentials: true\r\n"
             "Connection: keep-alive\r\n\r\n";
         send(client_sock, response, strlen(response), 0);
         return;
     }
+
     // Split buffer into request and json parts
     char *json_start = strstr(buffer, "\r\n\r\n");
     if (json_start != NULL) {
@@ -93,7 +95,6 @@ void handle_request(int client_sock) {
     }
 
     route_request(client_sock, request, json);
-    // close(client_sock);
     return;
 }
 

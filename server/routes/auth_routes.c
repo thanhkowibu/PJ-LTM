@@ -36,7 +36,7 @@ void handle_login(int client_sock, const char *request, const char * body) {
         
         // setCurUser(find_user(extract_cookie(request, "session_id")));
         
-        sendResponse(client_sock, json_object_to_json_string(json_response));
+        sendError(client_sock, json_object_to_json_string(json_response), 400);
         return;
     }    
     printf("%d,%d\n", json_object_object_get_ex(json_request, "password", &username_obj), json_object_object_get_ex(json_request, "username", &password_obj));
@@ -59,7 +59,7 @@ void handle_login(int client_sock, const char *request, const char * body) {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Invalid credentials"));
 
-        sendResponse(client_sock, json_object_to_json_string(json_response));
+        sendError(client_sock, json_object_to_json_string(json_response), 400);
     }
 
     
@@ -101,20 +101,41 @@ void handle_register(int client_sock, const char *request, const char * body) {
 }
 
 void handle_logout(int client_sock, const char *request, const char *body) {
+    
     struct json_object *json_response = json_object_new_object();
 
     // handle protected route
+    printf("%d\n", check_cookies(request));
 
-    if (check_cookies(request) && log_out()) {
-        delete_session(extract_cookie(request, "session_id"));
+    if (check_cookies(request)) {
+        // delete_session(extract_cookie(request, "session_id"));
+        const char *session_id = extract_cookie(request, "session_id");
+        delete_session(session_id);
+        free((void *)session_id);
+        const char *clear_cookie_header = "Set-Cookie: session_id=; HttpOnly; Path=/;SameSite=None;Secure; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("Logout successful"));
+
+        char response[BUFF_SIZE];
+        snprintf(response, sizeof(response),
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Access-Control-Allow-Origin: http://localhost:5173\r\n"
+            "Access-Control-Allow-Credentials: true\r\n"
+            "%s\r\n"
+            "Content-Length: %zu\r\n"
+            "Connection: keep-alive\r\n\r\n%s",
+            clear_cookie_header, strlen(json_object_to_json_string(json_response)), json_object_to_json_string(json_response));
+
+        send(client_sock, response, strlen(response), 0);
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Already log out"));
+        
+        sendError(client_sock, json_object_to_json_string(json_response), 400);
     }
 
-    sendResponse(client_sock, json_object_to_json_string(json_response));
     
     json_object_put(json_response);
 

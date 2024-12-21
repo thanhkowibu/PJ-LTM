@@ -1,86 +1,168 @@
 #include "api_routes.h"
+#include "../core/sse.h"
 #include "../features/game.h"
 #include "../utils/utils.h"
-
+#include "../middleware/cookies.h"
+#include "../features/room.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <json-c/json.h>
-#include "sse.h"
 #include <time.h>
 
 extern Client clients[MAX_CLIENTS];
 extern fd_set master_set;
 
 void initialize_game(int client_sock, const char *request, const char *body) {
-    create_questions();
+    struct json_object *json_request = json_tokener_parse(body);
+    struct json_object *room_name_obj, *num_players_obj;
+    const char *room_name = NULL;
+    int num_players = 0;
+
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) &&
+        json_object_object_get_ex(json_request, "num_players", &num_players_obj)) {
+        room_name = json_object_get_string(room_name_obj);
+        num_players = json_object_get_int(num_players_obj);
+    } else {
+        sendError(client_sock, "Invalid request", 400);
+        return;
+    }
+    // Delete the room if it already exists
+    if (get_room_by_name(room_name) != NULL) {
+        if (!delete_room(room_name)) {
+            sendError(client_sock, "Failed to delete existing room", 500);
+            return;
+        }
+    } else {
+        sendError(client_sock, "Waiting room not found", 500);
+        return;
+    }
+    GameRoom *room = find_or_create_room(room_name);
+    if (!room) {
+        sendError(client_sock, "Server is full", 500);
+        return;
+    }
+
+    room->num_players = num_players;
+
     sendResponse(client_sock, "{\"status\":\"Game initialized\"}");
+    // Create the broadcast JSON object
+    struct json_object *broadcast_json = json_object_new_object();
+    json_object_object_add(broadcast_json, "action", json_object_new_string("start"));
+    json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+    // Broadcast the JSON object
+    broadcast_json_object(broadcast_json, client_sock);
+
+    json_object_put(broadcast_json);
 }
 
 void get_game_data(int client_sock, const char *request, const char *body) {
-    // Find the client progress
-    int user_id = get_user_id_from_request(request); // Implement this function to extract user_id from request
+    printf("get_game_data called\n");
+    struct json_object *json_request = json_tokener_parse(body);
+    struct json_object *room_name_obj;
+
+    const char *room_name = NULL;
+    const char *username = NULL;
+
+    if (check_cookies(request)) {
+        const char *session_id = extract_cookie(request, "session_id");
+        printf("Session: %s\n", session_id);
+        username = validate_session(session_id);
+        printf("User: %s\n", username);
+    }
+
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && username) {
+        room_name = json_object_get_string(room_name_obj);
+        printf("Room name: %s\n", room_name);
+    } else {
+        sendError(client_sock, "Invalid request", 400);
+        return;
+    }
+
+    GameRoom *room = find_or_create_room(room_name);
+    if (!room) {
+        sendError(client_sock, "Room not found", 404);
+        return;
+    }
+
     int client_index = -1;
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (client_progress[i].user_id == user_id) {
+    for (int i = 0; i < room->num_players; i++) {
+        if (strcmp(room->client_progress[i].username, username) == 0) {
             client_index = i;
             break;
         }
     }
 
     if (client_index == -1) {
-        // New client, assign a slot
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (client_progress[i].user_id == -1) {
-                client_progress[i].user_id = user_id;
+        for (int i = 0; i < room->num_players; i++) {
+            if (room->client_progress[i].username[0] == '\0') {
+                strncpy(room->client_progress[i].username, username, 50);
+                printf("New user assigned: %s\n", room->client_progress[i].username);
                 client_index = i;
                 break;
             }
         }
     }
-
     if (client_index == -1) {
         sendError(client_sock, "Server is full", 500);
         return;
     }
 
-    int question_index = client_progress[client_index].current_question;
+    int question_index = room->client_progress[client_index].current_question;
+
+    if (question_index < 0 || question_index >= 5) {
+        sendError(client_sock, "Invalid question index", 500);
+        return;
+    }
 
     struct json_object *json_response = json_object_new_object();
-    json_object_object_add(json_response, "id", json_object_new_int(questions[question_index].id));
-    json_object_object_add(json_response, "name1", json_object_new_string(questions[question_index].name1));
-    json_object_object_add(json_response, "name2", json_object_new_string(questions[question_index].name2));
-    json_object_object_add(json_response, "pic1", json_object_new_string(questions[question_index].pic1));
-    json_object_object_add(json_response, "pic2", json_object_new_string(questions[question_index].pic2));
-    json_object_object_add(json_response, "unit", json_object_new_string(questions[question_index].unit));
+    json_object_object_add(json_response, "id", json_object_new_int(room->questions[question_index].id));
+    json_object_object_add(json_response, "name1", json_object_new_string(room->questions[question_index].name1));
+    json_object_object_add(json_response, "name2", json_object_new_string(room->questions[question_index].name2));
+    json_object_object_add(json_response, "pic1", json_object_new_string(room->questions[question_index].pic1));
+    json_object_object_add(json_response, "pic2", json_object_new_string(room->questions[question_index].pic2));
+    json_object_object_add(json_response, "unit", json_object_new_string(room->questions[question_index].unit));
 
-    const char *json_str = json_object_to_json_string(json_response);
-    char response[BUFF_SIZE];
-    snprintf(response, sizeof(response),
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n"
-        "Content-Length: %zu\r\n"
-        "Connection: keep-alive\r\n\r\n%s",
-        strlen(json_str), json_str);
-
-    send(client_sock, response, strlen(response), 0);
+    sendResponse(client_sock, json_object_to_json_string(json_response));
     json_object_put(json_response);
 }
 
 void handle_choice(int client_sock, const char *request, const char *body) {
     struct json_object *json_request = json_tokener_parse(body);
     struct json_object *choice_obj;
+    struct json_object *room_name_obj;
     int choice = 0;
 
     if (json_request && json_object_object_get_ex(json_request, "choice", &choice_obj)) {
         choice = json_object_get_int(choice_obj);
     }
 
-    int user_id = get_user_id_from_request(request); // Implement this function to extract user_id from request
+    const char *room_name = NULL;
+    const char *username = NULL;
+
+    if (check_cookies(request)) {
+        const char *session_id = extract_cookie(request, "session_id");
+        username = validate_session(session_id);
+        printf("%s", username);
+    }
+
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && username) {
+        room_name = json_object_get_string(room_name_obj);
+    } else {
+        sendError(client_sock, "Invalid request", 400);
+        return;
+    }
+
+    GameRoom *room = find_or_create_room(room_name);
+    if (!room) {
+        sendError(client_sock, "Room not found", 404);
+        return;
+    }
+
     int client_index = -1;
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (client_progress[i].user_id == user_id) {
+    for (int i = 0; i < room->num_players; i++) {
+        if (strcmp(room->client_progress[i].username, username) == 0) {
             client_index = i;
             break;
         }
@@ -91,24 +173,32 @@ void handle_choice(int client_sock, const char *request, const char *body) {
         return;
     }
 
-    int question_index = client_progress[client_index].current_question;
-    int score = (choice == questions[question_index].answer) ? 1 : 0;
+    int question_index = room->client_progress[client_index].current_question;
+    int score = (choice == room->questions[question_index].answer) ? 1 : 0;
 
-    client_progress[client_index].answered = 1;
-    client_progress[client_index].score += score;
-    broadcast_message("An user answered", client_sock);
+    room->client_progress[client_index].answered = 1;
+    room->client_progress[client_index].score += score;
+    // Create the broadcast JSON object
+    struct json_object *broadcast_json = json_object_new_object();
+    json_object_object_add(broadcast_json, "action", json_object_new_string("an user answered"));
+    json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+    // Broadcast the JSON object
+    broadcast_json_object(broadcast_json, client_sock);
+
+    json_object_put(broadcast_json);
 
     // Check if all clients have answered
     printf("---------\n");
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        printf("%d:  %d\n",client_progress[i].user_id,client_progress[i].answered);
+    for (int i = 0; i < room->num_players; i++) {
+        printf("%s:  %d\n", room->client_progress[i].username, room->client_progress[i].answered);
     }
-    printf("current: %d\n",current_question_index);
+    printf("current: %d\n", room->current_question_index);
     printf("---------\n");
 
     int all_answered = 1;
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (client_progress[i].user_id != -1 && !client_progress[i].answered) {
+    for (int i = 0; i < room->num_players; i++) {
+        if (room->client_progress[i].username[0] != '\0' && !room->client_progress[i].answered) {
             all_answered = 0;
             break;
         }
@@ -116,26 +206,42 @@ void handle_choice(int client_sock, const char *request, const char *body) {
 
     if (all_answered) {
         // Move to the next question
-        current_question_index++;
-        if (current_question_index >= 5) {
+        room->current_question_index++;
+        if (room->current_question_index >= 5) {
             // If all questions are answered, broadcast "Finish"
-            broadcast_message("Finish", client_sock);
+            // Create the broadcast JSON object
+            struct json_object *broadcast_json = json_object_new_object();
+            json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
+            json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+            // Broadcast the JSON object
+            broadcast_json_object(broadcast_json, client_sock);
+
+            json_object_put(broadcast_json);
         } else {
-            for (int i = 0; i < MAX_PLAYERS; i++) {
-                if (client_progress[i].user_id != -1) {
-                    client_progress[i].current_question = current_question_index;
-                    client_progress[i].answered = 0;
+            for (int i = 0; i < room->num_players; i++) {
+                if (room->client_progress[i].username[0] != '\0') {
+                    room->client_progress[i].current_question = room->current_question_index;
+                    room->client_progress[i].answered = 0;
                 }
             }
             // Notify clients to fetch the next question
-            broadcast_message("Next", client_sock);
+            // Create the broadcast JSON object
+            struct json_object *broadcast_json = json_object_new_object();
+            json_object_object_add(broadcast_json, "action", json_object_new_string("next"));
+            json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+            // Broadcast the JSON object
+            broadcast_json_object(broadcast_json, client_sock);
+
+            json_object_put(broadcast_json);
         }
     }
 
     struct json_object *json_response = json_object_new_object();
     json_object_object_add(json_response, "score", json_object_new_int(score));
-    json_object_object_add(json_response, "value1", json_object_new_int(questions[question_index].value1));
-    json_object_object_add(json_response, "value2", json_object_new_int(questions[question_index].value2));
+    json_object_object_add(json_response, "value1", json_object_new_int(room->questions[question_index].value1));
+    json_object_object_add(json_response, "value2", json_object_new_int(room->questions[question_index].value2));
 
     sendResponse(client_sock, json_object_to_json_string(json_response));
 
@@ -144,13 +250,29 @@ void handle_choice(int client_sock, const char *request, const char *body) {
 }
 
 void get_game_result(int client_sock, const char *request, const char *body) {
+    struct json_object *json_request = json_tokener_parse(body);
+    struct json_object *room_name_obj;
+    const char *room_name = NULL;
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj)) {
+        room_name = json_object_get_string(room_name_obj);
+    } else {
+        sendError(client_sock, "Invalid request", 400);
+        return;
+    }
+
+    GameRoom *room = find_or_create_room(room_name);
+    if (!room) {
+        sendError(client_sock, "Room not found", 404);
+        return;
+    }
+
     struct json_object *json_response = json_object_new_array();
 
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (client_progress[i].user_id != -1) {
+    for (int i = 0; i < room->num_players; i++) {
+        if (room->client_progress[i].username[0] != '\0') {
             struct json_object *json_player = json_object_new_object();
-            json_object_object_add(json_player, "user_id", json_object_new_int(client_progress[i].user_id));
-            json_object_object_add(json_player, "score", json_object_new_int(client_progress[i].score));
+            json_object_object_add(json_player, "username", json_object_new_string(room->client_progress[i].username));
+            json_object_object_add(json_player, "score", json_object_new_int(room->client_progress[i].score));
             json_object_array_add(json_response, json_player);
         }
     }
