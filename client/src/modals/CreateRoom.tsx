@@ -21,6 +21,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const BASE_URL = "http://localhost:8080/api"
 
@@ -31,6 +32,7 @@ type Props = {
 
 const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const formSchema = z.object({
     room_name: z.string().min(1, {
@@ -69,6 +71,7 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
       if (res.data.message){
         if (res.data.status === "success"){
           toast.success(res.data.message);
+          navigate(`/room/${values.room_name}`);
         } else {
           toast.error(res.data.message);
         }

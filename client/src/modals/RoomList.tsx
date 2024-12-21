@@ -10,39 +10,118 @@ type Props = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+type Room = {
+  room_name: string;
+  capacity: number;
+  topic: string;
+  host: string;
+  users: { username: string }[];
+};
+
 const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
-  const [rooms, setRooms] = useState([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(`${BASE_URL}/room/fetch_all_room`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true
-        });
-        setRooms(res.data.rooms);
-      } catch (err: any) {
-        console.log(err);
-        if (err.message) {
-          toast.error(err.message);
-        }
-      } finally {
-        setLoading(false);
+  const fetchRooms = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/room/fetch_all_room`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+      setRooms(res.data.rooms);
+    } catch (err: any) {
+      console.log(err);
+      if (err.message) {
+        toast.error(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Start Server-Sent Events (SSE)
+  const startSSE = () => {
+    const eventSource = new EventSource(`${BASE_URL}/subscribe`);
+  
+    eventSource.onmessage = (event) => {
+      console.log("SSE event data:", event.data);
+      const data = JSON.parse(event.data);
+      if (data.action === "create") {
+        setRooms((prevRooms) => [...prevRooms, {
+          room_name: data.room_name,
+          capacity: data.capacity,
+          topic: data.topic,
+          host: data.host,
+          users: data.users
+        }]);
+      } else if (data.action === "disband") {
+        console.log("SSE event data:", event.data);
+        setRooms((prevRooms) => prevRooms.filter(room => room.room_name !== data.room_name));
+      } else if (data.action === "join") {
+        setRooms((prevRooms) => prevRooms.map(room => {
+          if (room.room_name === data.room_name) {
+            return {
+              ...room,
+              users: [...room.users, { username: data.username }]
+            };
+          }
+          return room;
+        }));
+      } else if (data.action === "leave") {
+        setRooms((prevRooms) => prevRooms.map(room => {
+          if (room.room_name === data.room_name) {
+            return {
+              ...room,
+              users: room.users.filter(user => user.username !== data.username)
+            };
+          }
+          return room;
+        }));
       }
     };
+  
+    eventSource.onerror = () => {
+      console.error('SSE connection error. Reconnecting...');
+      eventSource.close();
+  
+      // Retry connection after a delay
+      setTimeout(startSSE, 5000);
+    };
+  };
 
+  useEffect(() => {
     if (isOpen) {
+      startSSE();
       fetchRooms();
     }
   }, [isOpen]);
 
-  const handleJoinRoom = (room_name: string) => {
-    navigate(`/room/${room_name}`);
+  const handleJoinRoom = async (room_name: string) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(`${BASE_URL}/room/join`, {room_name}, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+      console.log(res)
+      if (res.data.status==="success"){
+        toast.success(`Joined room ${room_name}`)
+        navigate(`/room/${room_name}`);
+      }
+    } catch (err: any) {
+      console.log(err);
+      if (err.message) {
+        toast.error(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

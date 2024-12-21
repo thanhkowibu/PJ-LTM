@@ -22,11 +22,17 @@ void add_session(const char *username, char *session_id) {
     pthread_mutex_lock(&session_mutex);
 
     Session *new_session = malloc(sizeof(Session));
+    if (new_session == NULL) {
+        perror("Failed to allocate memory for new session");
+        pthread_mutex_unlock(&session_mutex);
+        return;
+    }
     strncpy(new_session->session_id, session_id, COOKIE_LENGTH);
     strncpy(new_session->username, username, sizeof(new_session->username));
     new_session->next = session_store;
-    // printf("A: %s\n", new_session->session_id);
     session_store = new_session;
+
+    printf("Session added: %s -> %s\n", session_id, username);
 
     pthread_mutex_unlock(&session_mutex);
 }
@@ -38,13 +44,14 @@ const char *validate_session(const char *session_id) {
     while (current) {
         if (compare_string_sums(current->session_id, session_id) == 0) {
             pthread_mutex_unlock(&session_mutex);
-            // printf("C:%s - %s ", current->username, current->session_id);
+            printf("Session validated: %s -> %s\n", session_id, current->username);
             return current->username;
         }
         current = current->next;
     }
 
     pthread_mutex_unlock(&session_mutex);
+    printf("Session not found: %s\n", session_id);
     return NULL;
 }
 
@@ -65,7 +72,6 @@ int compare_string_sums(const char *str1, const char *str2) {
     return sum1 - sum2;
 }
 
-
 void delete_session(const char *session_id) {
     pthread_mutex_lock(&session_mutex);
 
@@ -75,6 +81,7 @@ void delete_session(const char *session_id) {
             Session *to_delete = *current;
             *current = (*current)->next;
             free(to_delete);
+            printf("Session deleted: %s\n", session_id);
             break;
         }
         current = &(*current)->next;

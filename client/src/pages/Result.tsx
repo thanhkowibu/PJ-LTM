@@ -1,20 +1,26 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const BASE_URL = "http://127.0.0.1:8080/api"
 
 export const Result = () => {
+  const { id } = useParams<{ id: string }>();
   const [results, setResults] = useState([]);
-
+  
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/game/1/result`, {
+      const response = await axios.post(`${BASE_URL}/game/result`, {
+        room_name: id,
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
       console.log(response.data);
-      setResults(response.data);
+      // Sort results by score in descending order
+      const sortedResults = response.data.sort((a: any, b: any) => b.score - a.score);
+      setResults(sortedResults);
     } catch (error) {
       console.error(error);
     }
@@ -38,14 +44,14 @@ export const Result = () => {
         <table className="table-auto text-white text-4xl text-center font-semibold">
           <thead>
             <tr>
-              <th className="px-8 py-6">Player ID</th>
+              <th className="px-8 py-6">Player</th>
               <th className="px-8 py-6">Score</th>
             </tr>
           </thead>
           <tbody>
-            {results.map((result:any) => (
-              <tr key={result.user_id}>
-                <td className="border px-8 py-6">Player {result.user_id}</td>
+            {results.map((result: any) => (
+              <tr key={result.username}>
+                <td className="border px-8 py-6">{result.username}</td>
                 <td className="border px-4 py-2">{result.score}</td>
               </tr>
             ))}

@@ -2,7 +2,7 @@
 
 #include "../features/user.h"
 #include "../features/room.h"
-
+#include "../core/sse.h"
 #include "../utils/utils.h"
 
 #include <json-c/json.h>
@@ -17,7 +17,7 @@
 #include "../middleware/cookies.h"
 
 void join_room(int client_sock, const char *request, const char *body) {
-        // Locate the JSON body in the HTTP request
+    // Locate the JSON body in the HTTP request
     struct json_object *json_request = json_tokener_parse(body);
     struct json_object *room_name_obj;
     // struct json_object *username_obj;
@@ -58,11 +58,22 @@ void join_room(int client_sock, const char *request, const char *body) {
             }
         }
         json_object_object_add(json_response, "users", users_array);
+        sendResponse(client_sock, json_object_to_json_string(json_response));
+        // Create the broadcast JSON object
+        struct json_object *broadcast_json = json_object_new_object();
+        json_object_object_add(broadcast_json, "action", json_object_new_string("join"));
+        json_object_object_add(broadcast_json, "username", json_object_new_string(username));
+        json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+        // Broadcast the JSON object
+        broadcast_json_object(broadcast_json, client_sock);
+
+        json_object_put(broadcast_json);
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Room not found or room is full"));
+        sendError(client_sock, json_object_to_json_string(json_response), 500);
     }
-    sendResponse(client_sock, json_object_to_json_string(json_response));
 
     json_object_put(json_request);
     json_object_put(json_response);
@@ -101,11 +112,22 @@ void leave_room(int client_sock, const char *request, const char *body) {
 
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("User left the room"));
+        sendResponse(client_sock, json_object_to_json_string(json_response));
+        // Create the broadcast JSON object
+        struct json_object *broadcast_json = json_object_new_object();
+        json_object_object_add(broadcast_json, "action", json_object_new_string("leave"));
+        json_object_object_add(broadcast_json, "username", json_object_new_string(username));
+        json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+        // Broadcast the JSON object
+        broadcast_json_object(broadcast_json, client_sock);
+
+        json_object_put(broadcast_json);
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Room not found or user not in the room"));
+        sendError(client_sock, "Invalid request", 500);
     }
-    sendResponse(client_sock, json_object_to_json_string(json_response));
 
     json_object_put(json_request);
     json_object_put(json_response);
@@ -153,11 +175,30 @@ void add_room(int client_sock, const char *request, const char *body) {
     if (room_name && create_room(room_name, capacity, topic, username)) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("Room created successfully"));
+        sendResponse(client_sock, json_object_to_json_string(json_response));
+        // Create the broadcast JSON object
+        struct json_object *broadcast_json = json_object_new_object();
+        json_object_object_add(broadcast_json, "action", json_object_new_string("create"));
+        json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+        json_object_object_add(broadcast_json, "capacity", json_object_new_int(capacity));
+        json_object_object_add(broadcast_json, "topic", json_object_new_string(topic));
+        json_object_object_add(broadcast_json, "host", json_object_new_string(username));
+
+        // Add the array of players (initially only the host)
+        struct json_object *players_array = json_object_new_array();
+        struct json_object *player_obj = json_object_new_object();
+        json_object_object_add(player_obj, "username", json_object_new_string(username));
+        json_object_array_add(players_array, player_obj);
+        json_object_object_add(broadcast_json, "users", players_array);
+        // Broadcast the JSON object
+        broadcast_json_object(broadcast_json, client_sock);
+
+        json_object_put(broadcast_json);
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Room creation failed"));
+        sendError(client_sock, json_object_to_json_string(json_response), 500);
     }
-    sendResponse(client_sock, json_object_to_json_string(json_response));
 
     json_object_put(json_request);
     json_object_put(json_response);
@@ -187,11 +228,21 @@ void disband_room(int client_sock, const char *request, const char *body) {
     if (room_name && delete_room(room_name)) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
         json_object_object_add(json_response, "message", json_object_new_string("Room disbanded successfully"));
+        sendResponse(client_sock, json_object_to_json_string(json_response));
+        // Create the broadcast JSON object
+        struct json_object *broadcast_json = json_object_new_object();
+        json_object_object_add(broadcast_json, "action", json_object_new_string("disband"));
+        json_object_object_add(broadcast_json, "room_name", json_object_new_string(room_name));
+
+        // Broadcast the JSON object
+        broadcast_json_object(broadcast_json, client_sock);
+
+        json_object_put(broadcast_json);
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Room not found"));
+        sendError(client_sock, json_object_to_json_string(json_response),500);
     }
-    sendResponse(client_sock, json_object_to_json_string(json_response));
 
     json_object_put(json_request);
     json_object_put(json_response);
@@ -230,11 +281,12 @@ void get_room_info(int client_sock, const char *request, const char *body) {
         }
         
         json_object_object_add(json_response, "users", users_array);
+        sendResponse(client_sock, json_object_to_json_string(json_response));
     } else {
         json_object_object_add(json_response, "status", json_object_new_string("failure"));
         json_object_object_add(json_response, "message", json_object_new_string("Room not found"));
+        sendError(client_sock, json_object_to_json_string(json_response),500);
     }
-    sendResponse(client_sock, json_object_to_json_string(json_response));
 
     json_object_put(json_request);
     json_object_put(json_response);

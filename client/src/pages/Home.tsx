@@ -41,13 +41,14 @@ export const Home = () => {
       }
     } catch (err: any) {
       console.log(err)
-      if (err.message){
-        toast.error(err.message);
+      if (err.response.data.message){
+        toast.error(err.response.data.message);
       }
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="h-dvh relative">

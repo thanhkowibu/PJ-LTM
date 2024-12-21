@@ -3,6 +3,7 @@
 
 #include <sys/select.h>
 #include <stdbool.h>
+#include <json-c/json.h>
 
 #define MAX_CLIENTS 100
 #define BUFF_SIZE 1024
@@ -16,6 +17,7 @@ extern Client clients[MAX_CLIENTS];
 extern fd_set master_set;
 
 void broadcast_message(const char *message, int sender_sock);
+void broadcast_json_object(json_object *json_obj, int sender_sock);
 void remove_client(int client_sock);
 
 #endif

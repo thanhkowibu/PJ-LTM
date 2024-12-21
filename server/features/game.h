@@ -18,7 +18,7 @@ typedef struct {
 } Question;
 
 typedef struct {
-    int user_id;
+    char username[50];
     int current_question;
     int answered;
     int score;

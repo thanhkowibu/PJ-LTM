@@ -1,12 +1,14 @@
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react";
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const BASE_URL = "http://127.0.0.1:8080/api"
+const BASE_URL = "http://localhost:8080/api"
 
 export const IngameRoom = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
   const [isShown, setIsShown] = useState(false);
   const [name1, setName1] = useState("");
   const [name2, setName2] = useState("");
@@ -14,6 +16,8 @@ export const IngameRoom = () => {
   const [pic2, setPic2] = useState("");
   const [unit, setUnit] = useState("");
   const [score, setScore] = useState(0);
+
+  const username = localStorage.getItem("username")
 
   // animation
   const [countdown, setCountdown] = useState(200); // 200 for 20 seconds with 0.1s interval
@@ -23,8 +27,6 @@ export const IngameRoom = () => {
   const [value1, setValue1] = useState(0);
   const [value2, setValue2] = useState(0);
   
-  const userId = localStorage.getItem('userId');
-
   useEffect(() => {
     if (isShown) {
       const duration = 1500;
@@ -71,13 +73,12 @@ export const IngameRoom = () => {
   // game logic
   const fetchData = async () => {
 
-    console.log("userId=",userId)
     try {
-      const response = await axios.get(`${BASE_URL}/game/1`, {
+      const response = await axios.post(`${BASE_URL}/game`, { room_name: id }, {
         headers: {
           'Content-Type': 'application/json',
-          // 'User-ID': userId,
         },
+        withCredentials: true // Ensure cookies are sent with the request
       });
       console.log(response.data);
       setName1(response.data.name1);
@@ -106,7 +107,7 @@ export const IngameRoom = () => {
         } else if (event.data === "Finish") {
           console.log("Navigating to /result/1 due to Finish event");
           setTimeout(() => {
-            navigate("/result/1");
+            navigate(`/result/${id}`);
           }, 3500);
         }
       };
@@ -131,13 +132,14 @@ export const IngameRoom = () => {
       setIsTimerRunning(false);
       console.log(choice);
       try {
-        const response = await axios.post(`${BASE_URL}/game/1`, {
-          choice
+        const response = await axios.post(`${BASE_URL}/game/choice`, {
+          choice,
+          room_name: id
         }, {
           headers: {
             'Content-Type': 'application/json',
-            'User-ID': userId,
-          }
+          },
+          withCredentials: true
         });
         console.log(response.data);
         setScore((pv) => pv + response.data.score);
@@ -171,7 +173,7 @@ export const IngameRoom = () => {
       </div>
       <div className="fixed bottom-4 left-20 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="text-2xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
-          <span>UserID: {userId}</span>
+          <span>Username: {username}</span>
         </div>
       </div>
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">

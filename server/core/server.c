@@ -47,10 +47,10 @@ Route routes[] = {
     {"POST", "/api/room/get_info", get_room_info, 0},
     {"GET", "/api/room/fetch_all_room", get_all_room_info, 0},
 
-    {"GET", "/api/game/1/init", initialize_game, 0},
-    {"GET", "/api/game/1", get_game_data, 0},
-    {"POST", "/api/game/1", handle_choice, 0},
-    {"GET", "/api/game/1/result", get_game_result, 0},
+    {"POST", "/api/game/init", initialize_game, 0},
+    {"POST", "/api/game", get_game_data, 0},
+    {"POST", "/api/game/choice", handle_choice, 0},
+    {"POST", "/api/game/result", get_game_result, 0},
 };
 
 // middleware
