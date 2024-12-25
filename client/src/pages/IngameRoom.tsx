@@ -93,6 +93,9 @@ export const IngameRoom = () => {
       setPic2(response.data.pic2);
       setUnit(response.data.unit);
       setUsedPowerup(response.data.used_powerup); // Update used power-ups state
+      const client = response.data.clients.find((client: { username: string | null; }) => client.username === username);
+      const score = client ? client.score : 0;
+      setScore(score)
     } catch (error) {
       console.error(error);
     }
@@ -192,6 +195,14 @@ export const IngameRoom = () => {
         setValue1(response.data.value1);
         setValue2(response.data.value2);
         setCountdown(response.data.remaining_time * 10); // Update countdown with remaining time
+        setSelectedPowerUp(0)
+        setUsedPowerup((prevUsedPowerup) => {
+          const newUsedPowerup = [...prevUsedPowerup];
+          if (selectedPowerUp > 0) {
+            newUsedPowerup[selectedPowerUp - 1] = 1; // Mark the power-up as used
+          }
+          return newUsedPowerup;
+        });
       } catch (error) {
         console.error(error);
       }

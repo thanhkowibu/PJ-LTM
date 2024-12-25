@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 #include "../core/sse.h"
 
-#define TOPIC "database/topic1/topic1.txt"
+#define TOPIC "database/topic3/topic3.txt"
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
@@ -51,16 +51,16 @@ void create_questions(GameRoom *room) {
 
     shuffle(indices, MAX_LINES);
 
-    // Pick the first 6 distinct entries
-    int selected_indices[6];
-    for (int i = 0; i < 6; i++) {
+    // Pick the first 11 distinct entries
+    int selected_indices[11];
+    for (int i = 0; i < 11; i++) {
         selected_indices[i] = indices[i];
     }
 
-    // Create 5 questions from the 6 entries
-    for (int i = 0; i < 5; i++) {
+    // Create 10 questions from the 11 entries
+    for (int i = 0; i < 10; i++) {
         int idx1 = selected_indices[i];
-        int idx2 = selected_indices[(i + 1) % 6];
+        int idx2 = selected_indices[(i + 1) % 11];
 
         if (i % 2 == 1) {
             // Swap the order for odd indices
@@ -173,7 +173,7 @@ void check_timeout(GameRoom *room) {
             room->current_question_index++;
             printf("current index: %d\n",room->current_question_index);
 
-            if (room->current_question_index >= 5) {
+            if (room->current_question_index >= 10) {
                 // Broadcast "Finish"
                 struct json_object *broadcast_json = json_object_new_object();
                 json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
@@ -239,7 +239,7 @@ void check_timeout(GameRoom *room) {
         printf("24 sec over\n");
         room->current_question_index++;
         printf("current index: %d\n",room->current_question_index);
-        if (room->current_question_index >= 5) {
+        if (room->current_question_index >= 10) {
             // Broadcast "Finish"
             struct json_object *broadcast_json = json_object_new_object();
             json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
