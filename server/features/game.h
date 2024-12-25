@@ -1,8 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define MAX_LINES 20
-#define MAX_LINE_LENGTH 1000
+#define MAX_LINES 100
+#define MAX_LINE_LENGTH 256
 #define MAX_PLAYERS 3
 #define MAX_ROOMS 10
 #define MAX_POWERUPS 4

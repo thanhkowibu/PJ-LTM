@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 #include "../core/sse.h"
 
-#define TOPIC "database/topic1/topic1.txt"
+#define TOPIC "database/youtuber.csv"
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
@@ -62,38 +62,37 @@ void create_questions(GameRoom *room) {
         int idx1 = selected_indices[i];
         int idx2 = selected_indices[(i + 1) % 6];
 
-    if (i % 2 == 1) {
-        // Swap the order for odd indices
-        sscanf(data[idx2], "%d,%49[^,],%lld,%49[^,],%199[^\n]", 
-            &room->questions[i].id, 
-            room->questions[i].name1, 
-            &room->questions[i].value1, 
-            room->questions[i].unit, 
-            room->questions[i].pic1);
+        if (i % 2 == 1) {
+            // Swap the order for odd indices
+            sscanf(data[idx2], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+                &room->questions[i].id, 
+                room->questions[i].name1, 
+                &room->questions[i].value1, 
+                room->questions[i].unit, 
+                room->questions[i].pic1);
 
-        sscanf(data[idx1], "%d,%49[^,],%lld,%49[^,],%199[^\n]", 
-            &room->questions[i].id, 
-            room->questions[i].name2, 
-            &room->questions[i].value2, 
-            room->questions[i].unit, 
-            room->questions[i].pic2);
-    } else {
-        // Default order for even indices
-        sscanf(data[idx1], "%d,%49[^,],%lld,%49[^,],%199[^\n]", 
-            &room->questions[i].id, 
-            room->questions[i].name1, 
-            &room->questions[i].value1, 
-            room->questions[i].unit, 
-            room->questions[i].pic1);
+            sscanf(data[idx1], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+                &room->questions[i].id, 
+                room->questions[i].name2, 
+                &room->questions[i].value2, 
+                room->questions[i].unit, 
+                room->questions[i].pic2);
+        } else {
+            // Default order for even indices
+            sscanf(data[idx1], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+                &room->questions[i].id, 
+                room->questions[i].name1, 
+                &room->questions[i].value1, 
+                room->questions[i].unit, 
+                room->questions[i].pic1);
 
-        sscanf(data[idx2], "%d,%49[^,],%lld,%49[^,],%199[^\n]", 
-            &room->questions[i].id, 
-            room->questions[i].name2, 
-            &room->questions[i].value2, 
-            room->questions[i].unit, 
-            room->questions[i].pic2);
-    }
-
+            sscanf(data[idx2], "%d|%49[^|]|%lld|%49[^|]|%199[^\n]", 
+                &room->questions[i].id, 
+                room->questions[i].name2, 
+                &room->questions[i].value2, 
+                room->questions[i].unit, 
+                room->questions[i].pic2);
+        }
 
         printf("Raw line 1: %s\n", data[idx1]);
         printf("Raw line 2: %s\n", data[idx2]);
