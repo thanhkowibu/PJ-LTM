@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 type Props = {
   isOpen: boolean;

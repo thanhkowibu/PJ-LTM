@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import CreateRoom from '@/modals/CreateRoom';
 import RoomList from '@/modals/RoomList';
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 export const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -14,11 +14,7 @@ export const Home = () => {
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
   const [isRoomListOpen, setIsRoomListOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const SERVER_URL = window.location.hostname === 'localhost'
-    ? import.meta.env.VITE_LOCAL_SERVER_URL
-    : import.meta.env.VITE_GUEST_SERVER_URL;
-
+  
   const username = localStorage.getItem("username")
 
   const handleLogout = async () => {

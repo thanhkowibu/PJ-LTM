@@ -63,9 +63,9 @@ void send_cookie_response(int client_sock, const char *response, const char *use
 }
 
 const char *extract_cookie(const char *request, const char *cookie_name) {
-    printf("%s\n", request);
+    // printf("%s\n", request);
     const char *cookie_header = strstr(request, "Cookie: ");
-    printf("Cookie header: %s\n", cookie_header);
+    // printf("Cookie header: %s\n", cookie_header);
     if (!cookie_header) return NULL;
 
     cookie_header += strlen("Cookie: ");
@@ -79,13 +79,13 @@ const char *extract_cookie(const char *request, const char *cookie_name) {
     char *cookie_value = malloc(length + 1); // Allocate space for null terminator
     strncpy(cookie_value, start, length);
     cookie_value[length] = '\0'; // Null terminator
-    printf("Cookie value: %s\n", cookie_value);
+    // printf("Cookie value: %s\n", cookie_value);
     return cookie_value;
 }
 
 int check_cookies(const char *request) {
     const char *session_id = extract_cookie(request, "session_id");
-    printf("Session: %s\n", session_id);
+    // printf("Session: %s\n", session_id);
     
     if (!session_id) {
         return 0;

@@ -1,13 +1,16 @@
+import { cn } from "@/lib/utils";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const BASE_URL = "http://127.0.0.1:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 export const Result = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [results, setResults] = useState([]);
+
+  const username = localStorage.getItem("username")
   
   const fetchData = async () => {
     try {
@@ -51,7 +54,7 @@ export const Result = () => {
           </thead>
           <tbody>
             {results.map((result: any) => (
-              <tr key={result.username}>
+              <tr key={result.username} className={cn({"text-yellow-200":result.username === username})}>
                 <td className="border px-8 py-6">{result.username}</td>
                 <td className="border px-4 py-2">{result.score}</td>
               </tr>

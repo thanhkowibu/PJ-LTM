@@ -32,7 +32,7 @@ void add_session(const char *username, char *session_id) {
     new_session->next = session_store;
     session_store = new_session;
 
-    printf("Session added: %s -> %s\n", session_id, username);
+    // printf("Session added: %s -> %s\n", session_id, username);
 
     pthread_mutex_unlock(&session_mutex);
 }
@@ -44,7 +44,7 @@ const char *validate_session(const char *session_id) {
     while (current) {
         if (compare_string_sums(current->session_id, session_id) == 0) {
             pthread_mutex_unlock(&session_mutex);
-            printf("Session validated: %s -> %s\n", session_id, current->username);
+            // printf("Session validated: %s -> %s\n", session_id, current->username);
             return current->username;
         }
         current = current->next;

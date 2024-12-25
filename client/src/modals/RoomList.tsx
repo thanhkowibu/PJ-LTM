@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 type Props = {
   isOpen: boolean;
@@ -21,6 +21,7 @@ type Room = {
 const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [eventSource, setEventSource] = useState<EventSource | null>(null); // Add state for EventSource
   const navigate = useNavigate();
 
   const fetchRooms = async () => {
@@ -45,9 +46,10 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
 
   // Start Server-Sent Events (SSE)
   const startSSE = () => {
-    const eventSource = new EventSource(`${BASE_URL}/subscribe`);
+    const es = new EventSource(`${BASE_URL}/subscribe`);
+    setEventSource(es); // Store EventSource instance in state
   
-    eventSource.onmessage = (event) => {
+    es.onmessage = (event) => {
       console.log("SSE event data:", event.data);
       const data = JSON.parse(event.data);
       if (data.action === "create") {
@@ -84,9 +86,9 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
       }
     };
   
-    eventSource.onerror = () => {
+    es.onerror = () => {
       console.error('SSE connection error. Reconnecting...');
-      eventSource.close();
+      es.close();
   
       // Retry connection after a delay
       setTimeout(startSSE, 5000);
@@ -98,6 +100,13 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
       startSSE();
       fetchRooms();
     }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close(); // Close EventSource when component unmounts
+        console.log('EventSource closed');
+      }
+    };
   }, [isOpen]);
 
   const handleJoinRoom = async (room_name: string) => {
@@ -112,6 +121,10 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
       console.log(res)
       if (res.data.status==="success"){
         toast.success(`Joined room ${room_name}`)
+        if (eventSource) {
+          eventSource.close(); // Close EventSource when navigating away
+          console.log('EventSource closed');
+        }
         navigate(`/room/${room_name}`);
       }
     } catch (err: any) {
