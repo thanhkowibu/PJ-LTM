@@ -5,6 +5,7 @@
 #define MAX_LINE_LENGTH 1000
 #define MAX_PLAYERS 3
 #define MAX_ROOMS 10
+#define MAX_POWERUPS 4
 #include <time.h>
 
 typedef struct {
@@ -25,6 +26,7 @@ typedef struct {
     int answered;
     int score;
     int streak;
+    int used_powerup[MAX_POWERUPS]; // Array to track used power-ups
 } ClientProgress;
 
 typedef struct {

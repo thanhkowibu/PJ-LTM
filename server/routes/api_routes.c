@@ -68,17 +68,9 @@ void get_game_data(int client_sock, const char *request, const char *body) {
     const char *room_name = NULL;
     const char *username = NULL;
 
-    // if (check_cookies(request)) {
-    //     const char *session_id = extract_cookie(request, "session_id");
-    //     // printf("Session: %s\n", session_id);
-    //     username = validate_session(session_id);
-    //     // printf("User: %s\n", username);
-    // }
-
     if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && json_object_object_get_ex(json_request, "username", &username_obj)) {
         room_name = json_object_get_string(room_name_obj);
         username = json_object_get_string(username_obj);
-        // printf("Room name: %s\n", room_name);
     } else {
         sendError(client_sock, "Invalid request", 400);
         return;
@@ -129,6 +121,13 @@ void get_game_data(int client_sock, const char *request, const char *body) {
     json_object_object_add(json_response, "unit", json_object_new_string(room->questions[question_index].unit));
     json_object_object_add(json_response, "timestamp", json_object_new_int(room->question_start_time)); // Add timestamp
 
+    // Create JSON array for used_powerup
+    struct json_object *used_powerup_array = json_object_new_array();
+    for (int i = 1; i < MAX_POWERUPS; i++) {
+        json_object_array_add(used_powerup_array, json_object_new_int(room->client_progress[client_index].used_powerup[i]));
+    }
+    json_object_object_add(json_response, "used_powerup", used_powerup_array); // Add used_powerup array
+
     sendResponse(client_sock, json_object_to_json_string(json_response));
     json_object_put(json_response);
 }
@@ -139,8 +138,10 @@ void handle_choice(int client_sock, const char *request, const char *body) {
     struct json_object *room_name_obj;
     struct json_object *username_obj;
     struct json_object *remaining_time_obj;
+    struct json_object *powerup_obj;
     int choice = 0;
     int remaining_time = 0;
+    int powerup = 0;
 
     if (json_request && json_object_object_get_ex(json_request, "choice", &choice_obj)) {
         choice = json_object_get_int(choice_obj);
@@ -150,14 +151,12 @@ void handle_choice(int client_sock, const char *request, const char *body) {
         remaining_time = json_object_get_int(remaining_time_obj);
     }
 
+    if (json_request && json_object_object_get_ex(json_request, "powerup", &powerup_obj)) {
+        powerup = json_object_get_int(powerup_obj);
+    }
+
     const char *room_name = NULL;
     const char *username = NULL;
-
-    // if (check_cookies(request)) {
-    //     const char *session_id = extract_cookie(request, "session_id");
-    //     username = validate_session(session_id);
-    //     // printf("%s", username);
-    // }
 
     if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && json_object_object_get_ex(json_request, "username", &username_obj)) {
         room_name = json_object_get_string(room_name_obj);
@@ -188,16 +187,35 @@ void handle_choice(int client_sock, const char *request, const char *body) {
 
     int question_index = room->client_progress[client_index].current_question;
     int base_score = (choice == room->questions[question_index].answer) ? 1000 : 0;
+    int bonus = 0;
+    const char *powerup_msg = "";
+
     if (base_score == 1000) {
         room->client_progress[client_index].streak++;
+        if (powerup == 3) {
+            bonus += 1000; // Power-up 3: +1000 score if correct
+            powerup_msg = "+1000 score received";
+        }
     } else {
-        room->client_progress[client_index].streak = 0;
+        if (powerup == 2) {
+            room->client_progress[client_index].streak = room->client_progress[client_index].streak; // Power-up 2: Protect streak if wrong
+            powerup_msg = "Streak protected";
+        } else {
+            room->client_progress[client_index].streak = 0;
+        }
     }
-    int bonus = (base_score == 1000) ? remaining_time * 10 * room->client_progress[client_index].streak : 0;
+
+    bonus += (base_score == 1000) ? remaining_time * 10 * room->client_progress[client_index].streak : 0;
     int total_score = base_score + bonus;
+
+    if (powerup == 1) {
+        total_score *= 2; // Power-up 1: Double the total score
+        powerup_msg = "Doubled score received";
+    }
 
     room->client_progress[client_index].answered = 1;
     room->client_progress[client_index].score += total_score;
+    room->client_progress[client_index].used_powerup[powerup] = 1;
 
     // Create the broadcast JSON object
     struct json_object *broadcast_json = json_object_new_object();
@@ -238,6 +256,7 @@ void handle_choice(int client_sock, const char *request, const char *body) {
     json_object_object_add(json_response, "value2", json_object_new_int(room->questions[question_index].value2));
     json_object_object_add(json_response, "remaining_time", json_object_new_int(remaining_time));
     json_object_object_add(json_response, "streak", json_object_new_int(room->client_progress[client_index].streak));
+    json_object_object_add(json_response, "powerup_msg", json_object_new_string(powerup_msg)); // Add powerup_msg to response
 
     sendResponse(client_sock, json_object_to_json_string(json_response));
 
