@@ -20,9 +20,14 @@ export const Home = () => {
   const handleLogout = async () => {
     if (loading) return;
 
+    if (!username){
+      toast.error("Already logged out")
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/auth/logout`, {},{
+      const res = await axios.post(`${BASE_URL}/auth/logout`, {username},{
         headers: {
           'Content-Type': 'application/json',
         },

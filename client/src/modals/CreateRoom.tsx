@@ -34,6 +34,8 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const username = localStorage.getItem("username")
+
   const formSchema = z.object({
     room_name: z.string().min(1, {
       message: "Room name is required",
@@ -44,6 +46,7 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
     topic: z.enum(["Anime", "Food's Price", "Hololive"], {
       errorMap: () => ({ message: "Topic must be one of Anime, Food's Price, or Hololive" }),
     }),
+    username: z.string().nullable()
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,11 +55,14 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
       room_name: "",
       capacity: "5",
       topic: "Anime",
+      username: username
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (loading) return;
+
+    values.username = username;
 
     console.log(values);
     setLoading(true);

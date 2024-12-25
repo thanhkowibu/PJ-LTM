@@ -24,7 +24,11 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const [eventSource, setEventSource] = useState<EventSource | null>(null); // Add state for EventSource
   const navigate = useNavigate();
 
+  const username = localStorage.getItem("username")
+  
   const fetchRooms = async () => {
+    if (loading) return;
+
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/room/fetch_all_room`, {
@@ -112,7 +116,7 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   const handleJoinRoom = async (room_name: string) => {
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/room/join`, {room_name}, {
+      const res = await axios.post(`${BASE_URL}/room/join`, {room_name,username}, {
         headers: {
           'Content-Type': 'application/json',
         },

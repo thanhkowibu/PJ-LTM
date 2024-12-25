@@ -92,7 +92,7 @@ export const WaitingRoom = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/room/leave`, {room_name: id} ,{
+      const res = await axios.post(`${BASE_URL}/room/leave`, {room_name: id,username} ,{
         headers: {
           'Content-Type': 'application/json',
         },
@@ -128,6 +128,7 @@ export const WaitingRoom = () => {
       })
       const res = await axios.post(`${BASE_URL}/game/init`, {
         room_name: id,
+        username,
         num_players: roomInfo.users.length
       } ,{
         headers: {
