@@ -27,6 +27,19 @@ void broadcast_json_object(json_object *json_obj, int sender_sock) {
     }
 }
 
+void broadcast_json_object_to_clients(json_object *json_obj, int *client_socks, int num_clients) {
+    const char *json_str = json_object_to_json_string(json_obj);
+
+    for (int i = 0; i < num_clients; i++) {
+        int client_sock = client_socks[i];
+        if (client_sock != -1) {
+            char sse_message[BUFF_SIZE];
+            snprintf(sse_message, sizeof(sse_message), "data: %s\n\n", json_str);
+            send(client_sock, sse_message, strlen(sse_message), 0);
+        }
+    }
+}
+
 void remove_client(int client_sock) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].client_sock == client_sock) {
