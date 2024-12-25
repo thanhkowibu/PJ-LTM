@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 #include "../core/sse.h"
 
-#define TOPIC "database/youtuber.txt"
+#define TOPIC "database/topic3/topic3.txt"
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
@@ -51,16 +51,16 @@ void create_questions(GameRoom *room) {
 
     shuffle(indices, MAX_LINES);
 
-    // Pick the first 6 distinct entries
-    int selected_indices[6];
-    for (int i = 0; i < 6; i++) {
+    // Pick the first 11 distinct entries
+    int selected_indices[11];
+    for (int i = 0; i < 11; i++) {
         selected_indices[i] = indices[i];
     }
 
-    // Create 5 questions from the 6 entries
-    for (int i = 0; i < 5; i++) {
+    // Create 10 questions from the 11 entries
+    for (int i = 0; i < 10; i++) {
         int idx1 = selected_indices[i];
-        int idx2 = selected_indices[(i + 1) % 6];
+        int idx2 = selected_indices[(i + 1) % 11];
 
         if (i % 2 == 1) {
             // Swap the order for odd indices
@@ -112,6 +112,9 @@ void create_questions(GameRoom *room) {
         room->client_progress[i].answered = 0;
         room->client_progress[i].score = 0;
         room->client_progress[i].streak = 0;
+        for (int j = 1; j < MAX_POWERUPS; j++) {
+            room->client_progress[i].used_powerup[j] = 0; // Initialize used_powerup array
+        }
     }
     room->current_question_index = 0;
     room->all_answered = 0;
@@ -170,7 +173,7 @@ void check_timeout(GameRoom *room) {
             room->current_question_index++;
             printf("current index: %d\n",room->current_question_index);
 
-            if (room->current_question_index >= 5) {
+            if (room->current_question_index >= 10) {
                 // Broadcast "Finish"
                 struct json_object *broadcast_json = json_object_new_object();
                 json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
@@ -219,13 +222,24 @@ void check_timeout(GameRoom *room) {
         json_object_object_add(broadcast_json, "room_name", json_object_new_string(room->room_name));
         json_object_object_add(broadcast_json, "remain_time", json_object_new_int(remain_time));
         json_object_object_add(broadcast_json, "question_index", json_object_new_int(room->current_question_index));
+        
+        // Create a JSON array for client progress
+        struct json_object *clients_array = json_object_new_array();
+        for (int i = 0; i < room->num_players; i++) {
+            struct json_object *client_json = json_object_new_object();
+            json_object_object_add(client_json, "username", json_object_new_string(room->client_progress[i].username));
+            json_object_object_add(client_json, "answered", json_object_new_int(room->client_progress[i].answered));
+            json_object_array_add(clients_array, client_json);
+        }
+        json_object_object_add(broadcast_json, "clients", clients_array);
+        
         broadcast_json_object(broadcast_json, -1);
         json_object_put(broadcast_json);
     } else if (remain_time <= -4) {
         printf("24 sec over\n");
         room->current_question_index++;
         printf("current index: %d\n",room->current_question_index);
-        if (room->current_question_index >= 5) {
+        if (room->current_question_index >= 10) {
             // Broadcast "Finish"
             struct json_object *broadcast_json = json_object_new_object();
             json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
