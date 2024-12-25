@@ -1,8 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define MAX_LINES 100
-#define MAX_LINE_LENGTH 256
+#define MAX_LINES 50
+#define MAX_LINE_LENGTH 1000
 #define MAX_PLAYERS 3
 #define MAX_ROOMS 10
 #define MAX_POWERUPS 4
@@ -31,7 +31,7 @@ typedef struct {
 
 typedef struct {
     char room_name[50];
-    Question questions[5];
+    Question questions[10];
     int current_question_index;
     ClientProgress client_progress[MAX_PLAYERS];
     int num_players;
