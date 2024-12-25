@@ -63,19 +63,21 @@ void get_game_data(int client_sock, const char *request, const char *body) {
     printf("get_game_data called\n");
     struct json_object *json_request = json_tokener_parse(body);
     struct json_object *room_name_obj;
+    struct json_object *username_obj;
 
     const char *room_name = NULL;
     const char *username = NULL;
 
-    if (check_cookies(request)) {
-        const char *session_id = extract_cookie(request, "session_id");
-        // printf("Session: %s\n", session_id);
-        username = validate_session(session_id);
-        // printf("User: %s\n", username);
-    }
+    // if (check_cookies(request)) {
+    //     const char *session_id = extract_cookie(request, "session_id");
+    //     // printf("Session: %s\n", session_id);
+    //     username = validate_session(session_id);
+    //     // printf("User: %s\n", username);
+    // }
 
-    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && username) {
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && json_object_object_get_ex(json_request, "username", &username_obj)) {
         room_name = json_object_get_string(room_name_obj);
+        username = json_object_get_string(username_obj);
         // printf("Room name: %s\n", room_name);
     } else {
         sendError(client_sock, "Invalid request", 400);
@@ -135,6 +137,7 @@ void handle_choice(int client_sock, const char *request, const char *body) {
     struct json_object *json_request = json_tokener_parse(body);
     struct json_object *choice_obj;
     struct json_object *room_name_obj;
+    struct json_object *username_obj;
     struct json_object *remaining_time_obj;
     int choice = 0;
     int remaining_time = 0;
@@ -150,14 +153,15 @@ void handle_choice(int client_sock, const char *request, const char *body) {
     const char *room_name = NULL;
     const char *username = NULL;
 
-    if (check_cookies(request)) {
-        const char *session_id = extract_cookie(request, "session_id");
-        username = validate_session(session_id);
-        // printf("%s", username);
-    }
+    // if (check_cookies(request)) {
+    //     const char *session_id = extract_cookie(request, "session_id");
+    //     username = validate_session(session_id);
+    //     // printf("%s", username);
+    // }
 
-    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && username) {
+    if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && json_object_object_get_ex(json_request, "username", &username_obj)) {
         room_name = json_object_get_string(room_name_obj);
+        username = json_object_get_string(username_obj);
     } else {
         sendError(client_sock, "Invalid request", 400);
         return;

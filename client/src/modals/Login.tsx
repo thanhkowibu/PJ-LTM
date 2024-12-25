@@ -26,6 +26,7 @@ type Props = {
 const Login: React.FC<Props> = ({ isOpen, setIsOpen, setOtherOpen }) => {
   const [loading, setLoading] = useState(false);
 
+  const username = localStorage.getItem("username")
 
   const formSchema = z.object({
     username: z.string().min(1, {
@@ -46,6 +47,11 @@ const Login: React.FC<Props> = ({ isOpen, setIsOpen, setOtherOpen }) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (loading) return;
+
+    if (username){
+      toast.error("Already logged in")
+      return;
+    }
 
     console.log(values);
     setLoading(true);

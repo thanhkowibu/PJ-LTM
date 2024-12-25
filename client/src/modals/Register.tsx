@@ -30,6 +30,8 @@ const Register: React.FC<Props> = ({
 }) => {
   const [loading, setLoading] = useState(false);
 
+  const username = localStorage.getItem("username")
+
   const formSchema = z.object({
     username: z
       .string()
@@ -51,6 +53,11 @@ const Register: React.FC<Props> = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (loading) return;
+
+    if (username){
+      toast.error("Already logged in")
+      return;
+    }
 
     console.log(values);
     setLoading(true);

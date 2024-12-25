@@ -71,7 +71,7 @@ export const IngameRoom = () => {
   // game logic
   const fetchData = async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/game`, { room_name: id }, {
+      const response = await axios.post(`${BASE_URL}/game`, { room_name: id, username }, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -152,6 +152,7 @@ export const IngameRoom = () => {
         const response = await axios.post(`${BASE_URL}/game/choice`, {
           choice,
           room_name: id,
+          username,
           remaining_time: remainingTime
         }, {
           headers: {
@@ -264,7 +265,9 @@ export const IngameRoom = () => {
       </div>
       {/* Add the container for the three circle divs */}
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4">
-        <div className="size-16 bg-white rounded-full"></div>
+        <div className="size-16 bg-white rounded-full">
+
+        </div>
         <div className="size-16 bg-white rounded-full"></div>
         <div className="size-16 bg-white rounded-full"></div>
       </div>
