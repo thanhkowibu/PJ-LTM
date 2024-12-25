@@ -32,6 +32,7 @@ export const IngameRoom = () => {
   const [animatedNumber2, setAnimatedNumber2] = useState(0);
   const [value1, setValue1] = useState(0);
   const [value2, setValue2] = useState(0);
+  
 
   // State to track selected power-up
   const [selectedPowerUp, setSelectedPowerUp] = useState(0);
@@ -141,9 +142,7 @@ export const IngameRoom = () => {
     es.onerror = () => {
       console.error('SSE connection error. Reconnecting...');
       es.close();
-
-      // Retry connection after a delay
-      setTimeout(startSSE, 5000);
+      navigate("/error");
     };
   };
 

@@ -67,9 +67,7 @@ export const WaitingRoom = () => {
     es.onerror = () => {
       console.error('SSE connection error. Reconnecting...');
       es.close();
-  
-      // Retry connection after a delay
-      setTimeout(startSSE, 5000);
+      navigate("/error")
     };
   };
 
