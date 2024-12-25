@@ -4,9 +4,9 @@
 #include <string.h>
 #include <time.h>
 #include <json-c/json.h>
+#include "../core/sse.h"
 
 #define TOPIC "database/topic1/topic1.txt"
-#define BUFF_SIZE 4096
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
@@ -111,8 +111,11 @@ void create_questions(GameRoom *room) {
         room->client_progress[i].current_question = 0;
         room->client_progress[i].answered = 0;
         room->client_progress[i].score = 0;
+        room->client_progress[i].streak = 0;
     }
     room->current_question_index = 0;
+    room->all_answered = 0;
+    room->all_answered_time = 0;
 }
 
 GameRoom* find_or_create_room(const char *room_name) {
@@ -130,4 +133,115 @@ GameRoom* find_or_create_room(const char *room_name) {
     }
 
     return NULL; // No available room slots
+}
+
+void delete_game_room(const char *room_name) {
+    for (int i = 0; i < num_rooms; i++) {
+        if (strcmp(game_rooms[i].room_name, room_name) == 0) {
+            // Shift remaining rooms
+            for (int j = i; j < num_rooms - 1; j++) {
+                game_rooms[j] = game_rooms[j + 1];
+            }
+            num_rooms--;
+            printf("Game room %s deleted\n", room_name);
+            return;
+        }
+    }
+    printf("Game room %s not found\n", room_name);
+}
+
+void check_timeout(GameRoom *room) { 
+    time_t current_time = time(NULL); 
+    int remain_time = 20 - (int)difftime(current_time, room->question_start_time);
+    printf("Checking timeout for room: %s, remain time: %d\n", room->room_name, remain_time);
+
+    // Handle delayed deletion of the game room
+    if (room->all_answered == 2) {
+        int delay_elapsed = (int)difftime(current_time, room->all_answered_time);
+        if (delay_elapsed >= 2) {
+            delete_game_room(room->room_name);
+        }
+    }
+    // Handle delayed execution for all_answered
+    if (room->all_answered) {
+        int delay_elapsed = (int)difftime(current_time, room->all_answered_time);
+        if (delay_elapsed >= 4) {
+            room->all_answered = 0; // Reset the flag
+            room->current_question_index++;
+            printf("current index: %d\n",room->current_question_index);
+
+            if (room->current_question_index >= 5) {
+                // Broadcast "Finish"
+                struct json_object *broadcast_json = json_object_new_object();
+                json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
+                json_object_object_add(broadcast_json, "room_name", json_object_new_string(room->room_name));
+                broadcast_json_object(broadcast_json, -1);
+                json_object_put(broadcast_json);
+
+                // Set the deletion time for the game room
+                room->all_answered_time = current_time;
+                room->all_answered = 2; // Set a new flag to indicate the room is ready for deletion
+            } else {
+                room->question_start_time = current_time; // Set the timestamp for the next question
+                for (int i = 0; i < room->num_players; i++) {
+                    room->client_progress[i].current_question = room->current_question_index;
+                    room->client_progress[i].answered = 0;
+                }
+            }
+        }
+    } else if (remain_time < 0 && remain_time > -4) {
+        printf("20 sec over\n");
+        for (int i = 0; i < room->num_players; i++) {
+            if (!room->client_progress[i].answered) {
+                room->client_progress[i].score += 0; // Mark unanswered clients with score 0
+                room->client_progress[i].answered = 1;
+                room->client_progress[i].streak = 0;
+            }
+        }
+
+        // Broadcast score, value1, value2, streak
+        for (int i = 0; i < room->num_players; i++) {
+            struct json_object *score_json = json_object_new_object();
+            json_object_object_add(score_json, "action", json_object_new_string("score_update"));
+            json_object_object_add(score_json, "room_name", json_object_new_string(room->room_name));
+            json_object_object_add(score_json, "username", json_object_new_string(room->client_progress[i].username));
+            json_object_object_add(score_json, "score", json_object_new_int(room->client_progress[i].score));
+            json_object_object_add(score_json, "value1", json_object_new_int(room->questions[room->current_question_index].value1));
+            json_object_object_add(score_json, "value2", json_object_new_int(room->questions[room->current_question_index].value2));
+            json_object_object_add(score_json, "streak", json_object_new_int(room->client_progress[i].streak));
+            broadcast_json_object(score_json, -1);
+            json_object_put(score_json);
+        }
+    } else if (remain_time >= -1) {
+        // Broadcast elapsed time and question index every second
+        struct json_object *broadcast_json = json_object_new_object();
+        json_object_object_add(broadcast_json, "action", json_object_new_string("update"));
+        json_object_object_add(broadcast_json, "room_name", json_object_new_string(room->room_name));
+        json_object_object_add(broadcast_json, "remain_time", json_object_new_int(remain_time));
+        json_object_object_add(broadcast_json, "question_index", json_object_new_int(room->current_question_index));
+        broadcast_json_object(broadcast_json, -1);
+        json_object_put(broadcast_json);
+    } else if (remain_time <= -4) {
+        printf("24 sec over\n");
+        room->current_question_index++;
+        printf("current index: %d\n",room->current_question_index);
+        if (room->current_question_index >= 5) {
+            // Broadcast "Finish"
+            struct json_object *broadcast_json = json_object_new_object();
+            json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
+            json_object_object_add(broadcast_json, "room_name", json_object_new_string(room->room_name));
+            broadcast_json_object(broadcast_json, -1);
+            json_object_put(broadcast_json);
+
+            // Set the deletion time for the game room
+            room->all_answered_time = current_time;
+            room->all_answered = 2; // Set a new flag to indicate the room is ready for deletion
+        } else {
+            room->question_start_time = current_time; // Set the timestamp for the next question
+            for (int i = 0; i < room->num_players; i++) {
+                room->client_progress[i].current_question = room->current_question_index;
+                room->client_progress[i].answered = 0;
+            }
+        }
+    }
 }

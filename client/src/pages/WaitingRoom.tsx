@@ -3,13 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from 'axios';
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 export const WaitingRoom = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(false);
   const [roomInfo, setRoomInfo] = useState<any>(null);
   const navigate = useNavigate();
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
   const username = localStorage.getItem("username")
 
@@ -38,9 +39,10 @@ export const WaitingRoom = () => {
 
   // Start Server-Sent Events (SSE)
   const startSSE = () => {
-    const eventSource = new EventSource(`${BASE_URL}/subscribe`);
+    const es = new EventSource(`${BASE_URL}/subscribe`);
+    setEventSource(es);
   
-    eventSource.onmessage = (event) => {
+    es.onmessage = (event) => {
       console.log("SSE event data:", event.data);
       const data = JSON.parse(event.data);
       if (data.action === "join" && data.username !== username && data.room_name === id) {
@@ -54,15 +56,17 @@ export const WaitingRoom = () => {
           users: prevRoomInfo.users.filter((user: any) => user.username !== data.username)
         }));
       } else if (data.action === "disband" && data.room_name === id) {
+        es.close();
         navigate("/");
       } else if (data.action === "start" && data.room_name === id) {
+        es.close();
         navigate(`/game/${id}`);
       }
     };
   
-    eventSource.onerror = () => {
+    es.onerror = () => {
       console.error('SSE connection error. Reconnecting...');
-      eventSource.close();
+      es.close();
   
       // Retry connection after a delay
       setTimeout(startSSE, 5000);
@@ -74,6 +78,13 @@ export const WaitingRoom = () => {
       startSSE();
       fetchData();
     }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        console.log("EventSource closed in WaitingRoom");
+      }
+    };
   }, [id]);
 
   const handleLeaveRoom = async () => {
@@ -90,6 +101,10 @@ export const WaitingRoom = () => {
       console.log(res.data);
       if (res.data.status === "success"){
         toast.success(res.data.message);
+        if (eventSource) {
+          eventSource.close();
+          console.log("EventSource closed in WaitingRoom");
+        }
         navigate(`/`);
       }
     } catch (err: any) {
@@ -122,10 +137,12 @@ export const WaitingRoom = () => {
       });
       console.log(res.data);
       if (res.data.status === "Game initialized"){
-        toast.success(res.data.message);
-        setTimeout(()=>{
-          navigate(`/game/${id}`);
-        }, 2000)
+        toast.success("Game started");
+        if (eventSource) {
+          eventSource.close();
+          console.log("EventSource closed in WaitingRoom");
+        }
+        navigate(`/game/${id}`);
       }
     } catch (err: any) {
       console.log(err)

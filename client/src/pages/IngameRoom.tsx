@@ -2,8 +2,9 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react";
 import axios from 'axios';
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 export const IngameRoom = () => {
   const navigate = useNavigate();
@@ -16,12 +17,14 @@ export const IngameRoom = () => {
   const [pic2, setPic2] = useState("");
   const [unit, setUnit] = useState("");
   const [score, setScore] = useState(0);
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   const username = localStorage.getItem("username")
 
   // animation
   const [countdown, setCountdown] = useState(200); // 200 for 20 seconds with 0.1s interval
-  const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [animatedNumber1, setAnimatedNumber1] = useState(0);
   const [animatedNumber2, setAnimatedNumber2] = useState(0);
   const [value1, setValue1] = useState(0);
@@ -60,19 +63,13 @@ export const IngameRoom = () => {
   }, [isShown, value1, value2]);
 
   useEffect(() => {
-    if (countdown > 0 && isTimerRunning) {
-      const timer = setInterval(() => {
-        setCountdown(prevCountdown => prevCountdown - 1);
-      }, 100);
-      return () => clearInterval(timer);
-    } else if (countdown === 0) {
+    if (countdown <= 0) {
       setIsShown(true);
     }
-  }, [countdown, isTimerRunning]);
+  }, [countdown]);
 
   // game logic
   const fetchData = async () => {
-
     try {
       const response = await axios.post(`${BASE_URL}/game`, { room_name: id }, {
         headers: {
@@ -80,62 +77,82 @@ export const IngameRoom = () => {
         },
         withCredentials: true // Ensure cookies are sent with the request
       });
-      console.log(response.data);
       setName1(response.data.name1);
       setName2(response.data.name2);
       setPic1(response.data.pic1);
       setPic2(response.data.pic2);
       setUnit(response.data.unit);
-      setIsShown(false);
-      setIsTimerRunning(true);
-      setCountdown(200);
+      
     } catch (error) {
       console.error(error);
     }
   };
     // Start Server-Sent Events (SSE)
     const startSSE = () => {
-      const eventSource = new EventSource(`${BASE_URL}/subscribe`);
+      if (eventSource) {
+        return;
+      }
+
+      const es = new EventSource(`${BASE_URL}/subscribe`);
+      setEventSource(es);
     
-      eventSource.onmessage = (event) => {
-        console.log("SSE event data:", event.data);
+      es.onmessage = (event) => {
+        // console.log("SSE event data:", event.data);
         const data = JSON.parse(event.data);
-        if (data.action === "next" && data.room_name === id) {
-          console.log("Calling fetchData due to Next event");
-          setTimeout(() => {
+        if (data.action === "update" && data.room_name === id) {
+          if (data.remain_time < 0) setCountdown(0)
+          else setCountdown(data.remain_time * 10); // Update countdown with remaining time
+          if (data.question_index !== questionIndex) {
+            console.log("sv indx: ",data.question_index," ,cli idx: ",questionIndex)
+            setQuestionIndex(data.question_index);
             fetchData();
-          }, 3500);
+            setIsShown(false);
+          }
+        } else if (data.action === "score_update" && data.room_name === id) {
+          if (data.username === username) {
+            setScore(data.score);
+            setStreak(data.streak);
+            setValue1(data.value1);
+            setValue2(data.value2);
+          }
         } else if (data.action === "finish" && data.room_name === id) {
           console.log("Navigating to /result/1 due to Finish event");
-          setTimeout(() => {
-            navigate(`/result/${id}`);
-          }, 3500);
+          es.close();
+          navigate(`/result/${id}`);
         }
       };
     
-      eventSource.onerror = () => {
+      es.onerror = () => {
         console.error('SSE connection error. Reconnecting...');
-        eventSource.close();
+        es.close();
     
         // Retry connection after a delay
         setTimeout(startSSE, 5000);
       };
     };
 
-  useEffect(() => {
-    fetchData();
-    startSSE();
-  }, []);
+    useEffect(() => {
+      fetchData();
+      startSSE();
+  
+      return () => {
+        if (eventSource) {
+          eventSource.close();
+          console.log("EventSource closed in IngameRoom");
+        }
+      };
+    }, []);
 
   const handleChoice = async (choice: number) => {
     if (countdown > 0) {
       setIsShown(true);
-      setIsTimerRunning(false);
-      console.log(choice);
+      // console.log(choice);
       try {
+        const remainingTime = Math.floor(countdown / 10);
         const response = await axios.post(`${BASE_URL}/game/choice`, {
           choice,
-          room_name: id
+          room_name: id,
+          remaining_time: remainingTime
         }, {
           headers: {
             'Content-Type': 'application/json',
@@ -143,14 +160,22 @@ export const IngameRoom = () => {
           withCredentials: true
         });
         console.log(response.data);
-        setScore((pv) => pv + response.data.score);
+        if (response.data.base_score === 1000) {
+          toast.success(`Bonus + ${response.data.bonus}`);
+          toast.success(`Correct + ${response.data.base_score}`);
+        } else {
+          toast.error(`Incorrect + ${response.data.base_score}`);
+        }
+        setScore((pv) => pv + response.data.total_score);
+        setStreak(response.data.streak);
         setValue1(response.data.value1);
         setValue2(response.data.value2);
+        setCountdown(response.data.remaining_time * 10); // Update countdown with remaining time
       } catch (error) {
         console.error(error);
       }
     }
-  }
+  };
 
   const circumference = 2 * Math.PI * 60; // 60 is the radius of the outer circle
   const offset = circumference - (countdown / 200) * circumference;
@@ -177,6 +202,16 @@ export const IngameRoom = () => {
           <span>Username: {username}</span>
         </div>
       </div>
+      <div className="fixed bottom-4 right-8 transform -translate-y-1/2 flex flex-col gap-4">
+        <div className="text-xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
+          <span>Streak: {streak}🔥</span>
+        </div>
+      </div>
+      <div className="fixed top-14 left-24 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
+        <div className="text-xl bg-white/90 text-black rounded-xl px-4 py-1 font-bold flex items-center justify-center">
+          <span>Question {questionIndex+1}</span>
+        </div>
+      </div>
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4">
         <div className="relative size-32 rounded-full bg-white/90 flex justify-center items-center">
           <svg className="absolute w-full h-full">
@@ -193,7 +228,7 @@ export const IngameRoom = () => {
           </svg>
           <div className="text-slate-900 text-3xl font-bold">{Math.floor(countdown / 10)}</div>
         </div>
-        <div className="text-2xl bg-white/90 text-black rounded-xl py-1 font-bold flex items-center justify-center">
+        <div className="text-2xl bg-white/90 text-black rounded-xl px-2 py-1 font-bold flex items-center justify-center">
           <span>Score: {score}</span>
         </div>
       </div>
@@ -226,6 +261,12 @@ export const IngameRoom = () => {
             {unit}
           </div>
         </div>
+      </div>
+      {/* Add the container for the three circle divs */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4">
+        <div className="size-16 bg-white rounded-full"></div>
+        <div className="size-16 bg-white rounded-full"></div>
+        <div className="size-16 bg-white rounded-full"></div>
       </div>
     </div>
   )

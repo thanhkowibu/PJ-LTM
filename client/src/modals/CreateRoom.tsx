@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const BASE_URL = "http://localhost:8080/api"
+const BASE_URL = import.meta.env.VITE_SERVER_URL
 
 type Props = {
   isOpen: boolean;

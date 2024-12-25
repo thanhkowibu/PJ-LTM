@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 
 #define MAX_CLIENTS 100
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 4096
 
 typedef struct {
     int client_sock;
