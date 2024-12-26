@@ -107,7 +107,7 @@ void get_game_data(int client_sock, const char *request, const char *body) {
 
     int question_index = room->client_progress[client_index].current_question;
 
-    if (question_index < 0 || question_index >= 5) {
+    if (question_index < 0 || question_index >= 10) {
         sendError(client_sock, "Invalid question index", 500);
         return;
     }
@@ -120,6 +120,15 @@ void get_game_data(int client_sock, const char *request, const char *body) {
     json_object_object_add(json_response, "pic2", json_object_new_string(room->questions[question_index].pic2));
     json_object_object_add(json_response, "unit", json_object_new_string(room->questions[question_index].unit));
     json_object_object_add(json_response, "timestamp", json_object_new_int(room->question_start_time)); // Add timestamp
+
+    struct json_object *clients_array = json_object_new_array();
+        for (int i = 0; i < room->num_players; i++) {
+            struct json_object *client_json = json_object_new_object();
+            json_object_object_add(client_json, "username", json_object_new_string(room->client_progress[i].username));
+            json_object_object_add(client_json, "score", json_object_new_int(room->client_progress[i].score));
+            json_object_array_add(clients_array, client_json);
+        }
+    json_object_object_add(json_response, "clients", clients_array);
 
     // Create JSON array for used_powerup
     struct json_object *used_powerup_array = json_object_new_array();
