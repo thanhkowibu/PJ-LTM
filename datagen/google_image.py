@@ -2,18 +2,22 @@ import os
 import requests
 from tqdm import tqdm
 import pandas
-# Constants
-API_KEY = "AIzaSyB-hNwRwfApy92bzzsVwk09NCIfED1k0c0"  # Replace with your API key
-CX = "526c80e2c6c7a43f3"     # Replace with your Custom Search Engine ID
-SEARCH_URL = "https://www.googleapis.com/customsearch/v1"
 
+API_KEY = "AIzaSyB-hNwRwfApy92bzzsVwk09NCIfED1k0c0" 
+CX = "526c80e2c6c7a43f3"     
 SEARCH_URL_TEMPLATE = "https://www.googleapis.com/customsearch/v1?q={query}&searchType=image&key=AIzaSyB-hNwRwfApy92bzzsVwk09NCIfED1k0c0&cx=526c80e2c6c7a43f3"
-IMAGE_DIR = 'images'
 
-# Create a directory to save images
-def create_directory(dir_name):
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
+
+DATSET_FILE = 'country_in.csv'
+DATE_LENGTH = 50
+
+TOPIC_NAME = 'country'
+OUTPUT_CSV = 'country.csv'
+
+OUTPUT_URL_BASE = "https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/"
+
+# Name, Value, Field
+MAP = ['Country', 'Area', 'Area']
 
 def convert_subscriptions(subscriptions):
     if 'M' in subscriptions:
@@ -23,10 +27,10 @@ def convert_subscriptions(subscriptions):
     else:
         return int(subscriptions.replace(',', ''))
 
-def generate_search_url(celebrity_name):
-    return SEARCH_URL_TEMPLATE.format(query=celebrity_name.replace(" ", "+"))
+def generate_search_url(obj_name):
+    return SEARCH_URL_TEMPLATE.format(query=obj_name.replace(" ", "+"))
 
-# Search and download images
+
 def download_image(url, save_path):
     response = requests.get(url)
     if response.status_code == 200:
@@ -35,41 +39,46 @@ def download_image(url, save_path):
     else:
         print(f"Failed to download image from {url}")
 
-# Main execution
+
+
 if __name__ == "__main__":
+    data = pandas.read_csv(DATSET_FILE)
 
 
-    FILE = 'datagen/top_500.csv'
+    data['url'] = data[MAP[0]].apply(generate_search_url)
+    # data[MAP[1]] = data[MAP[1]].apply(convert_subscriptions)
 
-    data = pandas.read_csv(FILE)
-    # celebrities = data['Ch_name'].unique()
-    data['SEARCH_URL'] = data['Ch_name'].apply(generate_search_url)
-    data['Subscriptions'] = data['Subscriptions'].apply(convert_subscriptions)
+    data = data.head(DATE_LENGTH)
 
     print(data.columns)
 
-    # for index, row in data.iterrows():
-    #     image_url = row['SEARCH_URL']  # Assuming SEARCH_URL contains the direct image URL
-    #     object_name = row['Ch_name'].replace(" ", "_")
-    #     save_path = os.path.join(IMAGE_DIR, f"{object_name}.jpg")
-    #     download_image(image_url, save_path)
-    #     print(f"Downloaded image for {row['Ch_name']}")
+    # Change to absolute path
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    IMAGE_DIR = os.path.join(script_dir, TOPIC_NAME)
 
-    # db = data[['Name', 'Pay', 'SEARCH_URL']].copy()
-    # db.columns = ['name', 'value', 'url']
+    if not os.path.exists(IMAGE_DIR):
+        os.makedirs(IMAGE_DIR)
 
-    # db.loc[:, 'field'] = "salary"
-    # db['Index'] = range(1, len(db) + 1)
+    save_urls = []
 
-    # db = db[['Index', 'name', 'value', 'field', 'url']]
+    for index, row in data.iterrows():
+        image_url = row['url']
+        object_name = row[MAP[0]].replace(" ", "_")
+        save_path = os.path.join(IMAGE_DIR, f"{object_name}.jpg")
+        # print(save_path)
 
-    # db.to_csv('server/database/celebrity.csv', index=False)
+        # Download image
+        # download_image(image_url, save_path)
+        save_url = OUTPUT_URL_BASE + TOPIC_NAME + f"{object_name}.jpg"
+        save_urls.append(save_url)
+
 
     db = pandas.DataFrame()
     db['Index'] = range(1, len(data) + 1)
-    db['Name'] = data['Ch_name']
-    db['Value'] = data['Subscriptions']
-    db['field'] = "Subscriptions"
-    db['url'] = "https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/topic1/images/pic1.jpg"
+    db['Name'] = data[MAP[0]]
+    db['Value'] = data[MAP[1]]
+    db['field'] = MAP[2]
+    db['url'] = save_urls
 
-    db.head(50).to_csv('datagen/youtuber.csv', index=False)
+
+    db.to_csv(OUTPUT_CSV, index=False)
