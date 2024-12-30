@@ -6,7 +6,7 @@
 #include <json-c/json.h>
 #include "../core/sse.h"
 
-#define TOPIC "database/topic3/topic3.txt"
+#define TOPIC "database/country.txt"
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
