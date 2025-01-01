@@ -21,17 +21,9 @@ void join_room(int client_sock, const char *request, const char *body) {
     struct json_object *json_request = json_tokener_parse(body);
     struct json_object *room_name_obj;
     struct json_object *username_obj;
-    // struct json_object *username_obj;
-    
 
     const char *room_name = NULL;
     const char *username = NULL;
-
-    // if (check_cookies(request)) {
-    //     const char *session_id = extract_cookie(request, "session_id");
-    //     username = validate_session(session_id);
-    //     printf("%s", username);
-    // }
 
     if (json_request && json_object_object_get_ex(json_request, "room_name", &room_name_obj) && json_object_object_get_ex(json_request, "username", &username_obj)) {
         room_name = json_object_get_string(room_name_obj);
@@ -41,14 +33,24 @@ void join_room(int client_sock, const char *request, const char *body) {
         return;
     }
 
+    Room *room = get_room_by_name(room_name);
+    if (!room) {
+        sendError(client_sock, "Room not found", 404);
+        return;
+    }
+
+    if (room->status == 1) {
+        sendError(client_sock, "Room is in-game", 400);
+        return;
+    }
+
     struct json_object *json_response = json_object_new_object();
 
-    if ((username != NULL) && room_name && !check_user_in_room(room_name,username) && add_user_to_room(room_name, username)) {
+    if ((username != NULL) && room_name && !check_user_in_room(room_name, username) && add_user_to_room(room_name, username)) {
         json_object_object_add(json_response, "status", json_object_new_string("success"));
 
         // Get the list of users in the room
         struct json_object *users_array = json_object_new_array();
-        Room *room = get_room_by_name(room_name);
         if (room) {
             UserNode *current = room->users;
             while (current != NULL) {
@@ -188,6 +190,7 @@ void add_room(int client_sock, const char *request, const char *body) {
         json_object_object_add(broadcast_json, "capacity", json_object_new_int(capacity));
         json_object_object_add(broadcast_json, "topic", json_object_new_string(topic));
         json_object_object_add(broadcast_json, "host", json_object_new_string(username));
+        json_object_object_add(broadcast_json, "room_status", json_object_new_int(0));
 
         // Add the array of players (initially only the host)
         struct json_object *players_array = json_object_new_array();
@@ -313,6 +316,7 @@ void get_all_room_info(int client_sock, const char *request, const char *body) {
         json_object_object_add(room_obj, "capacity", json_object_new_int(current.capacity));
         json_object_object_add(room_obj, "topic", json_object_new_string(current.topic));
         json_object_object_add(room_obj, "host", json_object_new_string(current.host->username));
+        json_object_object_add(room_obj, "status", json_object_new_int(current.status));
 
         struct json_object *users_array = json_object_new_array();
         UserNode *user_current = current.users;
