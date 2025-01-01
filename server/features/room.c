@@ -38,6 +38,7 @@ int create_room(const char *name, int capacity, const char *topic, const char *c
     new_room->topic[sizeof(new_room->topic) - 1] = '\0';
     User *cur = find_user(curUser);
     new_room->host = cur;
+    new_room->status = 0;
 
     // Create a new user node for the host
     UserNode *new_user_node = malloc(sizeof(UserNode));

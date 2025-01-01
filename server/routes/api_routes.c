@@ -28,24 +28,33 @@ void initialize_game(int client_sock, const char *request, const char *body) {
         sendError(client_sock, "Invalid request", 400);
         return;
     }
-    // Delete the room if it already exists
-    if (get_room_by_name(room_name) != NULL) {
-        if (!delete_room(room_name)) {
-            sendError(client_sock, "Failed to delete existing room", 500);
-            return;
-        }
-    } else {
+
+    Room *room = get_room_by_name(room_name);
+    if (!room) {
         sendError(client_sock, "Waiting room not found", 500);
         return;
     }
-    GameRoom *room = find_or_create_room(room_name);
-    if (!room) {
+
+    if (room->status == 1) {
+        sendError(client_sock, "Room is already in-game", 400);
+        return;
+    }
+
+    // if (!delete_room(room_name)) {
+    //     sendError(client_sock, "Failed to delete existing room", 500);
+    //     return;
+    // }
+
+    GameRoom *game_room = find_or_create_room(room_name);
+    if (!game_room) {
         sendError(client_sock, "Server is full", 500);
         return;
     }
 
-    room->num_players = num_players;
-    room->question_start_time = time(NULL); // Set the start time for the first question
+    game_room->num_players = num_players;
+    game_room->question_start_time = time(NULL); // Set the start time for the first question
+
+    room->status = 1; // Set status to 1 (in-game)
 
     sendResponse(client_sock, "{\"status\":\"Game initialized\"}");
     // Create the broadcast JSON object
@@ -299,6 +308,11 @@ void get_game_result(int client_sock, const char *request, const char *body) {
             json_object_object_add(json_player, "score", json_object_new_int(room->client_progress[i].score));
             json_object_array_add(json_response, json_player);
         }
+    }
+
+    Room *waiting_room = get_room_by_name(room_name);
+    if (waiting_room) {
+        waiting_room->status = 0; // Set status to 0 (waiting) when game ends
     }
 
     sendResponse(client_sock, json_object_to_json_string(json_response));

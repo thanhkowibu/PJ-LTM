@@ -17,6 +17,7 @@ typedef struct Room {
     char topic[50];
     UserNode *users;
     User * host;
+    int status; // 0: waiting, 1: in-game
 } Room;
 
 int create_room(const char *name, int capacity, const char * topic, const char * curUser);

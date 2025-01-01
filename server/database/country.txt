@@ -1,50 +1,50 @@
-1|Afghanistan |647500|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAfghanistan_.jpg
-2|Albania |28748|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAlbania_.jpg
-3|Algeria |2381740|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAlgeria_.jpg
-4|American Samoa |199|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAmerican_Samoa_.jpg
-5|Andorra |468|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAndorra_.jpg
-6|Angola |1246700|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAngola_.jpg
-7|Anguilla |102|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAnguilla_.jpg
-8|Antigua & Barbuda |443|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAntigua_&_Barbuda_.jpg
-9|Argentina |2766890|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryArgentina_.jpg
-10|Armenia |29800|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryArmenia_.jpg
-11|Aruba |193|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAruba_.jpg
-12|Australia |7686850|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAustralia_.jpg
-13|Austria |83870|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAustria_.jpg
-14|Azerbaijan |86600|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryAzerbaijan_.jpg
-15|"Bahamas| The "|13940|Area|"https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBahamas|_The_.jpg"
-16|Bahrain |665|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBahrain_.jpg
-17|Bangladesh |144000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBangladesh_.jpg
-18|Barbados |431|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBarbados_.jpg
-19|Belarus |207600|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBelarus_.jpg
-20|Belgium |30528|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBelgium_.jpg
-21|Belize |22966|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBelize_.jpg
-22|Benin |112620|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBenin_.jpg
-23|Bermuda |53|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBermuda_.jpg
-24|Bhutan |47000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBhutan_.jpg
-25|Bolivia |1098580|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBolivia_.jpg
-26|Bosnia & Herzegovina |51129|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBosnia_&_Herzegovina_.jpg
-27|Botswana |600370|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBotswana_.jpg
-28|Brazil |8511965|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBrazil_.jpg
-29|British Virgin Is. |153|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBritish_Virgin_Is._.jpg
-30|Brunei |5770|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBrunei_.jpg
-31|Bulgaria |110910|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBulgaria_.jpg
-32|Burkina Faso |274200|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBurkina_Faso_.jpg
-33|Burma |678500|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBurma_.jpg
-34|Burundi |27830|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryBurundi_.jpg
-35|Cambodia |181040|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCambodia_.jpg
-36|Cameroon |475440|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCameroon_.jpg
-37|Canada |9984670|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCanada_.jpg
-38|Cape Verde |4033|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCape_Verde_.jpg
-39|Cayman Islands |262|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCayman_Islands_.jpg
-40|Central African Rep. |622984|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCentral_African_Rep._.jpg
-41|Chad |1284000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryChad_.jpg
-42|Chile |756950|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryChile_.jpg
-43|China |9596960|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryChina_.jpg
-44|Colombia |1138910|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryColombia_.jpg
-45|Comoros |2170|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryComoros_.jpg
-46|"Congo| Dem. Rep. "|2345410|Area|"https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCongo|_Dem._Rep._.jpg"
-47|"Congo| Repub. of the "|342000|Area|"https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCongo|_Repub._of_the_.jpg"
-48|Cook Islands |240|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCook_Islands_.jpg
-49|Costa Rica |51100|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCosta_Rica_.jpg
-50|Cote d'Ivoire |322460|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/countryCote_d'Ivoire_.jpg
+1|Afghanistan|647500|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Afghanistan.jpg
+2|Albania|28748|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Albania.jpg
+3|Algeria|2381740|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Algeria.jpg
+4|American Samoa|199|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/American_Samoa.jpg
+5|Andorra|468|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Andorra.jpg
+6|Angola|1246700|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Angola.jpg
+7|Anguilla|102|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Anguilla.jpg
+8|Antigua & Barbuda|443|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Antigua_&_Barbuda.jpg
+9|Argentina|2766890|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Argentina.jpg
+10|Armenia|29800|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Armenia.jpg
+11|Aruba|193|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Aruba.jpg
+12|Australia|7686850|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Australia.jpg
+13|Austria|83870|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Austria.jpg
+14|Azerbaijan|86600|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Azerbaijan.jpg
+15|Bahamas|13940|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bahamas.jpg
+16|Bahrain|665|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bahrain.jpg
+17|Bangladesh|144000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bangladesh.jpg
+18|Barbados|431|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Barbados.jpg
+19|Belarus|207600|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Belarus.jpg
+20|Belgium|30528|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Belgium.jpg
+21|Belize|22966|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Belize.jpg
+22|Benin|112620|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Benin.jpg
+23|Bermuda|53|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bermuda.jpg
+24|Bhutan|47000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bhutan.jpg
+25|Bolivia|1098580|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bolivia.jpg
+26|Bosnia&Herzegovina|51129|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bosnia&Herzegovina.jpg
+27|Botswana|600370|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Botswana.jpg
+28|Brazil|8511965|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Brazil.jpg
+29|BritishVirginIs|153|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/BritishVirginIs.jpg
+30|Brunei|5770|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Brunei.jpg
+31|Bulgaria|110910|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Bulgaria.jpg
+32|BurkinaFaso|274200|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/BurkinaFaso.jpg
+33|Burma|678500|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Burma.jpg
+34|Burundi|27830|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Burundi.jpg
+35|Cambodia|181040|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Cambodia.jpg
+36|Cameroon|475440|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Cameroon.jpg
+37|Canada|9984670|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Canada.jpg
+38|CapeVerde|4033|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/CapeVerde.jpg
+39|Caymanslands|262|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Caymanslands.jpg
+40|CentralAfricanRep.|622984|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/CentralAfricanRep..jpg
+41|Chad|1284000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Chad.jpg
+42|Chile|756950|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Chile.jpg
+43|China|9596960|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/China.jpg
+44|Comoros|1138910|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Comoros.jpg
+45|Congo Dem. Rep.|2170|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Congo_Dem._Rep..jpg
+46|Congo Repub|2345410|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Congo_Repub.jpg
+47|Cook Islands|342000|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Cook_Islands.jpg
+48|Costa Rica|240|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Costa_Rica.jpg
+49|Cote d'Ivoire|51100|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Cote_d'Ivoire.jpg
+50|Croatia|322460|Area|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/country/Croatia.jpg

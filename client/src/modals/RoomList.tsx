@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { cn } from "@/lib/utils"; // Adjust the import path based on your project structure
 
 const BASE_URL = import.meta.env.VITE_SERVER_URL
 
@@ -16,6 +17,7 @@ type Room = {
   topic: string;
   host: string;
   users: { username: string }[];
+  status: number;
 };
 
 const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
@@ -62,7 +64,8 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
           capacity: data.capacity,
           topic: data.topic,
           host: data.host,
-          users: data.users
+          users: data.users,
+          status: data.room_status
         }]);
       } else if (data.action === "disband") {
         console.log("SSE event data:", event.data);
@@ -83,6 +86,16 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
             return {
               ...room,
               users: room.users.filter(user => user.username !== data.username)
+            };
+          }
+          return room;
+        }));
+      } else if (data.action === "start") {
+        setRooms((prevRooms) => prevRooms.map(room => {
+          if (room.room_name === data.room_name) {
+            return {
+              ...room,
+              status: 1
             };
           }
           return room;
@@ -195,11 +208,19 @@ const RoomList: React.FC<Props> = ({ isOpen, setIsOpen }) => {
                           <div className="text-xl font-semibold text-white mb-1">{room.room_name}</div>
                           <div className="text-base text-gray-100 w-56 truncate">Host: {room.host}</div>
                           <div className="text-sm text-gray-100 w-56 truncate">Capacity: {room.capacity}</div>
+                          <div className="text-sm text-gray-300 w-56 truncate">Status: {room.status === 0 ? "waiting" : "playing"}</div>
                           <div className="text-sm text-gray-300 w-56 truncate">Players: {room.users.map((user: any) => user.username).join(", ")}</div>
                         </div>
                         <button
                           onClick={() => handleJoinRoom(room.room_name)}
-                          className="text-lg text-white font-semibold px-6 py-2 rounded-full border-2 hover:bg-white hover:text-black transition duration-300"
+                          className={cn(
+                            "text-lg text-white font-semibold px-6 py-2 rounded-full border-2 transition duration-300",
+                            {
+                              "opacity-50 cursor-not-allowed": room.status === 1,
+                              "hover:bg-white hover:text-black": room.status !== 1
+                            }
+                          )}
+                          disabled={room.status === 1}
                         >
                           Join
                         </button>
