@@ -43,8 +43,9 @@ typedef struct {
 extern GameRoom game_rooms[MAX_ROOMS];
 extern int num_rooms;
 
-void create_questions(GameRoom *room);
-GameRoom* find_or_create_room(const char *room_name);
+void create_questions(GameRoom *room, const char *topic);
+GameRoom* create_game_room(const char *room_name, const char *topic);
+GameRoom* find_room(const char *room_name);
 void delete_game_room(const char *room_name);
 void check_timeout(GameRoom *room);
 

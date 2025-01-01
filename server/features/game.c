@@ -7,6 +7,7 @@
 #include "../core/sse.h"
 
 #define TOPIC "database/country.txt"
+#define NUM_QUESTIONS 5
 
 GameRoom game_rooms[MAX_ROOMS];
 int num_rooms = 0;
@@ -39,9 +40,15 @@ void shuffle(int *array, size_t n) {
     }
 }
 
-void create_questions(GameRoom *room) {
+void create_questions(GameRoom *room, const char *topic) {
     char data[MAX_LINES][MAX_LINE_LENGTH];
-    load_data(TOPIC, data);
+    
+    // Construct the file path
+    char file_path[MAX_LINE_LENGTH];
+    snprintf(file_path, sizeof(file_path), "database/%s.txt", topic);
+
+    // Load data from the constructed file path
+    load_data(file_path, data);
 
     srand(time(NULL));
     int indices[MAX_LINES];
@@ -51,16 +58,16 @@ void create_questions(GameRoom *room) {
 
     shuffle(indices, MAX_LINES);
 
-    // Pick the first 11 distinct entries
-    int selected_indices[11];
-    for (int i = 0; i < 11; i++) {
+    // Pick the first NUM_QUESTIONS + 1 distinct entries
+    int selected_indices[NUM_QUESTIONS + 1];
+    for (int i = 0; i < NUM_QUESTIONS + 1; i++) {
         selected_indices[i] = indices[i];
     }
 
-    // Create 10 questions from the 11 entries
-    for (int i = 0; i < 10; i++) {
+    // Create NUM_QUESTIONS questions from the selected entries
+    for (int i = 0; i < NUM_QUESTIONS; i++) {
         int idx1 = selected_indices[i];
-        int idx2 = selected_indices[(i + 1) % 11];
+        int idx2 = selected_indices[(i + 1) % (NUM_QUESTIONS + 1)];
 
         if (i % 2 == 1) {
             // Swap the order for odd indices
@@ -121,21 +128,23 @@ void create_questions(GameRoom *room) {
     room->all_answered_time = 0;
 }
 
-GameRoom* find_or_create_room(const char *room_name) {
+GameRoom* create_game_room(const char *room_name, const char *topic) {
+    if (num_rooms < MAX_ROOMS) {
+        GameRoom *new_room = &game_rooms[num_rooms++];
+        strncpy(new_room->room_name, room_name, sizeof(new_room->room_name));
+        create_questions(new_room, topic);
+        return new_room;
+    }
+    return NULL; // No available room slots
+}
+
+GameRoom* find_room(const char *room_name) {
     for (int i = 0; i < num_rooms; i++) {
         if (strcmp(game_rooms[i].room_name, room_name) == 0) {
             return &game_rooms[i];
         }
     }
-
-    if (num_rooms < MAX_ROOMS) {
-        GameRoom *new_room = &game_rooms[num_rooms++];
-        strncpy(new_room->room_name, room_name, sizeof(new_room->room_name));
-        create_questions(new_room);
-        return new_room;
-    }
-
-    return NULL; // No available room slots
+    return NULL;
 }
 
 void delete_game_room(const char *room_name) {
@@ -173,7 +182,7 @@ void check_timeout(GameRoom *room) {
             room->current_question_index++;
             printf("current index: %d\n",room->current_question_index);
 
-            if (room->current_question_index >= 10) {
+            if (room->current_question_index >= NUM_QUESTIONS) {
                 // Broadcast "Finish"
                 struct json_object *broadcast_json = json_object_new_object();
                 json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
@@ -239,7 +248,7 @@ void check_timeout(GameRoom *room) {
         printf("24 sec over\n");
         room->current_question_index++;
         printf("current index: %d\n",room->current_question_index);
-        if (room->current_question_index >= 10) {
+        if (room->current_question_index >= NUM_QUESTIONS) {
             // Broadcast "Finish"
             struct json_object *broadcast_json = json_object_new_object();
             json_object_object_add(broadcast_json, "action", json_object_new_string("finish"));
