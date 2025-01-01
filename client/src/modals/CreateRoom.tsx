@@ -43,8 +43,8 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
     capacity: z.enum(["5", "10", "20"], {
       errorMap: () => ({ message: "Capacity must be one of 5, 10, or 20" }),
     }),
-    topic: z.enum(["Anime", "Food's Price", "Hololive"], {
-      errorMap: () => ({ message: "Topic must be one of Anime, Food's Price, or Hololive" }),
+    topic: z.enum(["anime", "country", "youtuber"], {
+      errorMap: () => ({ message: "Topic must be one of anime, country, or youtuber" }),
     }),
     username: z.string().nullable()
   });
@@ -54,7 +54,7 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
     defaultValues: {
       room_name: "",
       capacity: "5",
-      topic: "Anime",
+      topic: "anime",
       username: username
     },
   });
@@ -180,7 +180,6 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
                               <SelectItem value="5">5</SelectItem>
                               <SelectItem value="10">10</SelectItem>
                               <SelectItem value="20">20</SelectItem>
-                              <SelectItem value="40">40</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -202,9 +201,9 @@ const CreateRoom: React.FC<Props> = ({ isOpen, setIsOpen }) => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="font-semibold">
-                              <SelectItem value="Anime">Anime</SelectItem>
-                              <SelectItem value="Food's Price">Food's Price</SelectItem>
-                              <SelectItem value="Hololive">Hololive</SelectItem>
+                              <SelectItem value="anime">Anime</SelectItem>
+                              <SelectItem value="country">Country</SelectItem>
+                              <SelectItem value="youtuber">Youtuber</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />

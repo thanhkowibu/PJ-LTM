@@ -45,7 +45,7 @@ void initialize_game(int client_sock, const char *request, const char *body) {
     //     return;
     // }
 
-    GameRoom *game_room = find_or_create_room(room_name);
+    GameRoom *game_room = create_game_room(room_name, room->topic);
     if (!game_room) {
         sendError(client_sock, "Server is full", 500);
         return;
@@ -85,7 +85,7 @@ void get_game_data(int client_sock, const char *request, const char *body) {
         return;
     }
 
-    GameRoom *room = find_or_create_room(room_name);
+    GameRoom *room = find_room(room_name);
     if (!room) {
         sendError(client_sock, "Room not found", 404);
         return;
@@ -184,7 +184,7 @@ void handle_choice(int client_sock, const char *request, const char *body) {
         return;
     }
 
-    GameRoom *room = find_or_create_room(room_name);
+    GameRoom *room = find_room(room_name);
     if (!room) {
         sendError(client_sock, "Room not found", 404);
         return;
@@ -293,7 +293,7 @@ void get_game_result(int client_sock, const char *request, const char *body) {
         return;
     }
 
-    GameRoom *room = find_or_create_room(room_name);
+    GameRoom *room = find_room(room_name);
     if (!room) {
         sendError(client_sock, "Room not found", 404);
         return;
