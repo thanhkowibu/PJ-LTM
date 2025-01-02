@@ -33,3 +33,18 @@
 33|Wave Music|33200000|Subscriptions|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/youtuber/wave.jpg
 34|Marshmello|57600000|Subscriptions|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/youtuber/marsh.jpg
 35|Toys and Colors|20400000|Subscriptions|https://raw.githubusercontent.com/thanhkowibu/PJ-LTM/refs/heads/main/server/database/youtuber/tc.jpg
+36|Sony Music India|36600000|Subscriptions|https://storage.googleapis.com/loudest-news-photo/news-photo/17114.Untitled-design-(11).jpg
+37|Ed Sheeran|46000000|Subscriptions|https://wallpapers.com/images/featured/ed-sheeran-y9deb32b7kfiob0h.jpg
+38|Gawr Gura|4500000|Subscriptions|https://images5.alphacoders.com/130/1301288.jpg
+39|IShowSpeed|34200000|Subscriptions|https://i.ytimg.com/vi/wYZux3BMc5k/maxresdefault.jpg
+40|The Weeknd|36800000|Subscriptions|https://i.ytimg.com/vi/fHI8X4OXluQ/maxresdefault.jpg
+41|Shane Dawson|22000000|Subscriptions|https://www.cbc.ca/kidsnews/images/Demonitization1July2.jpg
+42|James Charles|25000000|Subscriptions|https://variety.com/wp-content/uploads/2021/03/James-Charles-Instant-Influencer.jpg?w=1000&h=563&crop=1
+43|Jeffree Star|17000000|Subscriptions|https://socialbook.io/blog/content/images/2020/04/Jeffree-Star-is-one-of-the-top-Beauty-influencers-worldwide-1.jpeg
+44|Logan Paul|23000000|Subscriptions|https://media-cldnry.s-nbcnews.com/image/upload/t_social_share_1024x768_scale,f_auto,q_auto:best/rockcms/2024-01/240104-logan-paul-wm-521p-663ffd.jpg
+45|Jake Paul|20000000|Subscriptions|https://www.usmagazine.com/wp-content/uploads/2022/10/detailed-look-into-youtube-star-jake-pauls-fighting-career-01.jpg?quality=86&strip=all
+46|KSI|24000000|Subscriptions|https://media.gq-magazine.co.uk/photos/610bcbc20b993f08aff7d1aa/4:3/w_1440,h_1080,c_limit/05082021_KSI_HP.jpg
+47|Ninja|23000000|Subscriptions|https://cdn-img.thethao247.vn/upload/nhathuy/2018/09/25/ninja-cuoc-doi-dang-sau-su-noi-tieng-cua-rich-streamer1537845691.jpg
+48|David Dobrik|18000000|Subscriptions|https://i.ytimg.com/vi/lB734hc89x8/maxresdefault.jpg
+49|Emma Chamberlain|11000000|Subscriptions|https://i.ytimg.com/vi/aBsvtyygr0g/maxresdefault.jpg
+50|Liza Koshy|17000000|Subscriptions|https://i.ytimg.com/vi/nRafaCcfrcI/maxresdefault.jpg
